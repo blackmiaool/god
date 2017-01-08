@@ -1,0 +1,24 @@
+@import "bootstrap/variables.less";
+@import "bootstrap/glyphicons.less";
+@import "variables.less";
+@import "mixin.less";
+@import "deep-ui.less";
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+body {
+    //    background: url(/res/deep_ui/bg.png) center top no-repeat;
+    background-color: rgb(31, 25, 22);
+    background-size: cover;
+    font-family: Arial, Verdana, "微软雅黑", "黑体", serif;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-smoothing: subpixel-antialiased;
+    height: 100%;
+    color: wheat;
+}
+.chat-page{
+    @import "chat/chat.less";    
+}
