@@ -25,24 +25,24 @@
         <div class="list-wrap">
             <header>已加入列表</header>
             <ul>
-                <li>
+                <li v-for="room in rooms" class="clickable" @click="currentRoom=room" :class="{selected:currentRoom===room}">
                     <span class="avatar deep-avatar">
-                        <img src="./assets/avatar2.jpeg" alt="">
+                       <div class="avatar-img" :style="{'background-image':'url('+room.avatar+')'}"></div>
                     </span>
-                    <span class="name">MDZZ</span>
+                    <span class="name">{{room.name}}</span>
                 </li>
             </ul>
         </div>
         <div class="main-area-wrap">
             <main class="deep-panel">
                 <div class="messages-wrap deep-scroll" v-sticky-scroll>
-                    <Message v-for="msg in messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content">
+                    <Message v-for="msg in currentRoom.messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content">
 
                     </Message>
                 </div>
             </main>
             <header class="">
-                <span class="name">MDZZ</span>
+                <span class="name">{{currentRoom.name}}</span>
             </header>
             <footer>
                 <img src="./assets/deep_ui/little_box1.png" class="bg-img left">
@@ -73,6 +73,7 @@
                 <ul>
                     <li>
                         <span class="avatar">
+                        
                         <img  src="./assets/avatar.gif" alt="">
                     </span>
                         <span class="state glyphicon glyphicon-phone"></span>
@@ -103,15 +104,74 @@
     //            el.removeEventListener('keyup', el.handler)
     //        }
     //    })
+
+    const socket = window.io(':9012');
+
     export default {
         name: 'app',
+        mounted() {
+            socket.on('cr-message', (data) => {
+                console.log(this);
+                if (data.name === "robot10") {
+                    let fakeData = JSON.parse(data.content);
+                    if (typeof fakeData === "object" && fakeData) {
+                        fakeData.room = data.room;
+                        fakeData.source = data.source;
+                        data = fakeData;
+                    }
+                }
+                console.log(data);
+                const targetRoom = this.rooms.filter(function(room) {
+                    return room.name === data.room;
+                })[0];
+                if (targetRoom) {
+                    targetRoom.messages.push({
+                        name: data.name,
+                        time: (new Date()).format("hh:mm"),
+                        content: data.content,
+                        avatar: data.avatar,
+                        source: data.source,
+                    });
+                }
+            });
+            this.currentRoom = this.rooms[0];
+        },
         data() {
             return {
+                currentRoom: {},
+                rooms: [{
+                    name: "god",
+                    avatar: require("assets/avatar.gif"),
+                    messages: [{
+                        name: "blackmiaool",
+                        time: "16:36",
+                        content: "WTF-god",
+                        avatar: require("assets/avatar.gif"),
+                    }],
+                }, {
+                    name: "MDZZ",
+                    avatar: require("assets/lolo.jpg"),
+                    messages: [{
+                        name: "blackmiaool",
+                        time: "16:36",
+                        content: "WTF-MDZZ",
+                        avatar: require("assets/avatar.gif"),
+                    }],
+                }, {
+                    name: "fiora",
+                    avatar: require("assets/fiora.jpeg"),
+                    messages: [{
+                        name: "blackmiaool",
+                        time: "16:36",
+                        content: "WTF-fiora",
+                        avatar: require("assets/avatar.gif"),
+                    }],
+                }],
                 messages: [{
                     name: "blackmiaool",
                     time: "16:36",
-                    content: "这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样这个风格怎么样2",
-                    avatar: "/static/img/avatar.ed30abc.gif",
+                    content: "WTF",
+                    avatar: require("assets/avatar.gif"),
                 }],
                 abc: "",
                 imgPath: "./assets"
@@ -119,16 +179,25 @@
         },
         methods: {
             send() {
-                console.log(this.inputText)
-                this.messages.push({
+                console.log(this.inputText);
+
+                socket.emit("god-message", {
+                    content: this.inputText,
+                    room: this.currentRoom.name,
+                });
+                this.currentRoom.messages.push({
                     name: "blackmiaool",
                     time: (new Date()).format("hh:mm"),
                     content: this.inputText,
-                    avatar: "/static/img/avatar.ed30abc.gif",
+                    avatar: "/static/img/avatar.gif",
                 });
+                this.$input.innerHTML = "";
             },
             input($event) {
-                this.inputText = $event.target.innerHTML;
+                if (!this.$input) {
+                    this.$input = $event.target;
+                }
+                this.inputText = this.$input.innerHTML;
             }
         },
         components: {

@@ -1,7 +1,8 @@
 <template>
     <div class="message-wrap">
         <div class="avatar">
-            <img :src="avatar" alt="">
+           <div class="avatar-img" :style="{'background-image':'url('+avatar+')'}"></div>
+<!--            <img :src="avatar" alt="">-->
         </div>
         <div class="message">
             <div class="title">

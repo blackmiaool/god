@@ -4,7 +4,6 @@ import Vue from 'vue'
 import App from './App'
 
 require("./less/style.less");
-
 /* eslint-disable no-new */
 Date.prototype.format = function (format) {
     const zeros = ['', '0', '00', '000'];

@@ -24,7 +24,7 @@
                 childList: true
             };
             observer.observe(el, config);
-            console.log(this);
+
             //need reference to this, otherwise 'this'=MutationObserver
 
             function animateScroll(duration) {

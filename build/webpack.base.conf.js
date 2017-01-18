@@ -89,7 +89,7 @@ module.exports = {
                 query: {
                     limit: 10000,
                     //          name: utils.assetsPath('img/[name].[ext]')
-                    name: utils.assetsPath('img/[name].[hash:7].[ext]')
+                    name: utils.assetsPath('img/[name].[ext]')
                 }
       },
             {
