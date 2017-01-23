@@ -36,7 +36,7 @@
         <div class="main-area-wrap">
             <main class="deep-panel">
                 <div class="messages-wrap deep-scroll" v-sticky-scroll>
-                    <Message v-for="msg in currentRoom.messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content">
+                    <Message v-for="msg in currentRoom.messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content" type="msg.type">
 
                     </Message>
                 </div>
@@ -87,6 +87,8 @@
 
 <script>
     import Message from './components/Message';
+    import MessageSection from './components/MessageSection';
+
     import StickScroll from './directives/stick-scroll';
     //    import Vue from 'vue';
     //    Vue.directive('contenteditable-model', {
@@ -113,7 +115,13 @@
             socket.on('cr-message', (data) => {
                 console.log(this);
                 if (data.name === "robot10") {
-                    let fakeData = JSON.parse(data.content);
+                    let fakeData;
+                    try {
+                        fakeData = JSON.parse(data.content);
+                    } catch (e) {
+
+                    }
+
                     if (typeof fakeData === "object" && fakeData) {
                         fakeData.room = data.room;
                         fakeData.source = data.source;
@@ -145,7 +153,8 @@
                     messages: [{
                         name: "blackmiaool",
                         time: "16:36",
-                        content: "WTF-god",
+                        content: "<h1></h1>234#(乖) 年后可#(乖) 年后可以以这个为DEMO",
+                        type: "text",
                         avatar: require("assets/avatar.gif"),
                     }],
                 }, {
@@ -155,6 +164,7 @@
                         name: "blackmiaool",
                         time: "16:36",
                         content: "WTF-MDZZ",
+                        type: "text",
                         avatar: require("assets/avatar.gif"),
                     }],
                 }, {
@@ -164,17 +174,10 @@
                         name: "blackmiaool",
                         time: "16:36",
                         content: "WTF-fiora",
+                        type: "text",
                         avatar: require("assets/avatar.gif"),
                     }],
                 }],
-                messages: [{
-                    name: "blackmiaool",
-                    time: "16:36",
-                    content: "WTF",
-                    avatar: require("assets/avatar.gif"),
-                }],
-                abc: "",
-                imgPath: "./assets"
             }
         },
         methods: {
@@ -197,11 +200,12 @@
                 if (!this.$input) {
                     this.$input = $event.target;
                 }
-                this.inputText = this.$input.innerHTML;
+                this.inputText = this.$input.textContent;
             }
         },
         components: {
-            Message
+            Message,
+
         },
         directives: {
             StickScroll

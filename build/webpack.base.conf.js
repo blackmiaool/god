@@ -46,17 +46,36 @@ module.exports = {
                     },
           'less-loader'
         ]
-      }
-    ],
-        preLoaders: [
-            {
+      }, {
                 test: /\.vue$/,
-                loader: 'eslint',
+                //                loader: 'eslint',
+                enforce: 'pre',
+                use: [{
+                    loader: 'eslint-loader',
+                    options: {
+                        fix: true
+                    },
+                }],
                 include: [
           path.join(projectRoot, 'src')
         ],
-                exclude: /node_modules/
-      },
+                exclude: /node_modules/,
+                    }],
+
+        preLoaders: [
+//            {
+//                test: /\.vue$/,
+//                loader: 'eslint',
+//                include: [
+//          path.join(projectRoot, 'src')
+//        ],
+//                exclude: /node_modules/,
+//                fix: true,
+//                query: {
+//                    fix: true
+//                }
+//      },
+
             {
                 test: /\.js$/,
                 loader: 'eslint',
