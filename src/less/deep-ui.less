@@ -548,3 +548,18 @@
 .deep-disabled-block {
     .bg("@{path}/block.png");
 }
+.deep-input{    
+    &:focus{
+        .border-image( url("@{path}/input1.png") 25 29 25 29  fill stretch);
+//        color:rgb(201,79,34);
+    }    
+    .border-image( url("@{path}/input2.png") 25 29 25 29 fill stretch);   
+    color: wheat;
+    @scale:0.5;
+    border-width: 25px *  @scale 29px *  @scale 29px *  @scale 26px *  @scale;
+    font-size: 15px;
+    padding-left: 10px;
+    background-color: transparent;
+    outline: none;
+    border-color: transparent;
+}

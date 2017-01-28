@@ -24,7 +24,7 @@ app.use(convert(views(__dirname + '/views', {
 })));
 
 // logger
-app.use(async(ctx, next) => {
+app.use(async (ctx, next)=>{
     const start = new Date();
     await next();
     const ms = new Date() - start;
