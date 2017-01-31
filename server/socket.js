@@ -94,7 +94,6 @@ function init(io) {
                 return;
             }
             db.login(data.name, data.password).then(function (result) {
-                console.log(result)
                 db.getRoomsInfo(JSON.parse(result.rooms)).then(function (rooms) {
                     result.rooms = rooms;
                     result.rooms.forEach(function (room) {

@@ -61,7 +61,7 @@
         },
         data() {
             return {
-                mode: "login",
+                mode: "register",
                 name: "",
                 password: "",
                 password2: "",
