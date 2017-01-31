@@ -1,8 +1,8 @@
 <script>
     import Vue from 'vue';
     import MessageTypeYellowBean from './MessageTypeYellowBean';
-    var getChildrenTextContent = function(children) {
-        return children.map(function(node) {
+    var getChildrenTextContent = function (children) {
+        return children.map(function (node) {
             return node.children ?
                 getChildrenTextContent(node.children) :
                 node.text
@@ -12,9 +12,9 @@
         name: 'message-section',
         render(createElement) {
             // create kebabCase id
-            console.log(this.$slots)
-                // var headingId = getChildrenTextContent(this.$slots.default) // .toLowerCase() // .replace(/\W+/g, '-') // .replace(/(^\-|\-$)/g, '')
-            console.log(this.data)
+
+            // var headingId = getChildrenTextContent(this.$slots.default) // .toLowerCase() // .replace(/\W+/g, '-') // .replace(/(^\-|\-$)/g, '')
+
             if (this.type === "span") {
                 return createElement(
                     this.type, this.data);
@@ -40,5 +40,4 @@
             MessageTypeYellowBean
         }
     });
-
 </script>

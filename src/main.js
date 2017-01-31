@@ -3,6 +3,12 @@
 import Vue from 'vue'
 import Chat from './Chat'
 import Login from './Login'
+import socket from "./io";
+
+var a = 1;
+if (a - 1) {
+    console.log(socket)
+}
 
 require("./less/style.less");
 /* eslint-disable no-new */
@@ -36,7 +42,8 @@ Vue.use(VueRouter);
 const routes = [
     {
         path: '/',
-        component: Chat
+        component: Chat,
+        name: "Chat"
     },
     {
         path: '/login',
@@ -47,11 +54,13 @@ const routes = [
         component: Chat
     }
 ];
-
-const router = new VueRouter({
+socket.on("disconnection", function () {
+    socket.context.logged = false;
+});
+window.router = new VueRouter({
     routes // short for routes: routes
 });
 
 new Vue({
-    router
+    router: window.router
 }).$mount('#app');

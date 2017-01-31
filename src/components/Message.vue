@@ -21,7 +21,7 @@
 <script>
     function tokenMatch(content, matches) {
         const tokens = [];
-        matches.forEach(function(v) {
+        matches.forEach(function (v) {
             let result;
             while (1) {
                 result = v.regexp.exec(content);
@@ -36,12 +36,12 @@
                 })
             }
         });
-        tokens.sort(function(a1, a2) {
+        tokens.sort(function (a1, a2) {
             return a1.index > a2.index ? 1 : -1;
         });
         let result = [];
         let lastIndex = 0;
-        tokens.forEach(function(v, i) {
+        tokens.forEach(function (v, i) {
             if (v.index > lastIndex) {
                 result.push({
                     type: "span",
@@ -69,7 +69,7 @@
                 data: content
             });
         }
-        console.log(result)
+
         return result;
 
     }
@@ -82,7 +82,7 @@
         },
         props: ["name", "time", "content", "avatar"],
         computed: {
-            sections: function() {
+            sections: function () {
                 return tokenMatch(this.content, [{
                     regexp: /#\(([\S]+?)\)\s?/g,
                     type: "MessageTypeYellowBean"
@@ -92,7 +92,6 @@
         },
 
     }
-
 </script>
 <!--
 var a=/#\([\S]+?\)/g;

@@ -1,0 +1,86 @@
+width: @left-tabs-width;
+position: absolute;
+left: 0;
+top: 0;
+bottom: 0;
+.bg-image {
+    position: absolute;
+    width: 100%;
+    &.top {
+        top: @left-tabs-width;
+    }
+    &.bottom {
+        bottom: 0;
+    }
+}
+
+.middle {
+    position: absolute;
+    top: @left-tabs-width + 10px;
+    bottom: 9px;
+    left: 0;
+    right: 0;
+    img {
+        height: 100%;
+    }
+}
+
+.avatar {
+    .square(@left-tabs-width);
+    .abs-fill;
+    left: 0px;
+    bottom: auto;
+    top: 0px;
+    padding: 8px;
+    box-sizing: border-box;
+    img {
+        width: 100%;
+        background-color: wheat;
+    }
+}
+
+.tabs {
+    margin-top: 150px;
+    text-align: center;
+    [data-tab-name] {
+        font-size: 23px;
+        margin: auto;
+        margin-top: 20px;
+        text-align: center;
+        display: block;
+        position: relative;
+        height: 40px;
+        width: 40px;
+        border-style: solid;
+        border-width: 0;
+        opacity: 0.7;
+        &.active {
+            opacity: 1;
+        }
+        &:active {
+            opacity: 0.5;
+        }
+        &:hover {
+            text-shadow: black 0px 0px 18px;
+        }
+        &.router-link-active {
+            opacity: 1;
+        }
+        &[data-tab-name="groups"] {
+            .border-image(url("@{res-folder}/deep_ui/btns.png") 84 176 187 624 fill repeat repeat);
+        }
+        &[data-tab-name="search"] {
+            .border-image(url("@{res-folder}/deep_ui/btns.png") 84 85 178 714 fill repeat repeat);
+        }
+        &[data-tab-name="other"] {
+            .border-image(url("@{res-folder}/deep_ui/btns.png") 265 811 0 0 fill repeat repeat);
+        }
+        &[data-tab-name="login"] {
+            .border-image(url("@{res-folder}/deep_ui/btns.png") 175 811 90 0 fill repeat repeat);
+        }
+        &:focus {}
+    }
+}
+
+//    84 88 187 714
+.tools {}

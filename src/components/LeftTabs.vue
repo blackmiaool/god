@@ -1,5 +1,5 @@
 <template>
-    <div class="chat-page">
+    
         <div class="left-tabs-wrap">
             <div class="middle">
                 <img src="../assets/deep_ui/btn_rect_orange6.png" class="bg-image">
@@ -12,9 +12,10 @@
                 <img src="../assets/avatar.gif" alt="">
             </div>
             <div class="tabs">
-                <div data-tab-name="groups" class="clickable"></div>
+                <router-link to="/chat" data-tab-name="groups" class="clickable"></router-link>
                 <div data-tab-name="search" class="clickable"></div>
                 <div data-tab-name="other" class="clickable"></div>
+                <router-link to="/login" data-tab-name="login" class="clickable"></router-link>
             </div>
             <div class="tools">
                 <div data-tool-name="logging"></div>
@@ -23,16 +24,15 @@
             </div>
         </div>
        
-    </div>
+    
 </template>
 
 <script>
-
     export default {
-        name: 'leftTabs',       
+        name: 'leftTabs',
         data() {
             return {
-                
+
             }
         },
         methods: {
@@ -45,5 +45,4 @@
 
         }
     }
-
 </script>

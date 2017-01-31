@@ -1,21 +1,109 @@
 @res-folder: "../../assets";
 @splitter: rgba(245, 222, 179, 0.3);
 padding-left:60px;
-.fill;
+height:100%;
+>main {
+    .fill;
+    position: relative;
+}
+
 .login-panel {
+    color: wheat;
     display: inline-block;
     .transform-center;
+    padding: 50px;
     >header {
-        .deep-header(80px);
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: -100px;
+        right: -100px;
+        margin: auto;
+        text-align: center;
+        top: -30px;
     }
-    >main {
-        .fill;
+    .go-register {
+        position: absolute;
+        left: 13px;
+        bottom: 15px;
+        background-color: transparent;
+        color: wheat;
+        border: none;
+        font-size: 15px;
+        outline: none;
     }
+    .accept {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        bottom: -37px;
+        zoom: 1.5;
+    }
+    .deep-select {
+        position: relative;
+    }
+    .remember {
+        text-align: center;
+        .deep-checkbox {
+            margin-right: 2px;
+            zoom: 2;
+        }
+    }
+    .input-block {
+        position: relative;
+        .err {
+            color: rgb(198, 66, 33);
+            margin-left: 22px;
+        }
+    }
+    padding-bottom: 80px;
 }
 
 input {
+    @color: rgb(67, 57, 57);
     height: 40px;
     width: 300px;
     font-size: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 0px;
+    color: wheat !important;
+    &:focus {
+        color: wheat
+    }
+    &::-webkit-input-placeholder {
+        /* Chrome/Opera/Safari */
+        color: @color;
+    }
+    &::-moz-placeholder {
+        /* Firefox 19+ */
+        color: @color;
+    }
+    &:-ms-input-placeholder {
+        /* IE 10+ */
+        color: @color;
+    }
+    &:-moz-placeholder {
+        /* Firefox 18- */
+        color: @color;
+    }
+    &::placeholder {
+        color: @color;
+    }
+    &:-webkit-autofill {
+        background-color: transparent !important;
+        color: wheat !important;
+        -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+        border-color: transparent!important;
+        -webkit-text-fill-color: wheat !important;
+        transition: background-color 5000s ease-in-out 0s !important;
+    }
+    &:autofill {
+        background-color: transparent !important;
+        color: wheat !important;
+        -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+        border-color: transparent!important;
+        -webkit-text-fill-color: wheat !important;
+        transition: background-color 5000s ease-in-out 0s !important;
+    }
 }

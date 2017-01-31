@@ -3,6 +3,7 @@
 @import "variables.less";
 @import "mixin.less";
 @import "deep-ui.less";
+@left-tabs-width: 60px;
 html,
 body {
     margin: 0;
@@ -20,12 +21,15 @@ body {
     height: 100%;
     color: wheat;
 }
-#app{
+
+#app {
     .fill;
 }
+
 .chat-page {
     @import "chat/chat.less";
 }
+
 .login-page {
     @import "login/login.less";
 }
@@ -35,4 +39,8 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     background-color: wheat;
+}
+
+.left-tabs-wrap {
+    @import "left-tabs-wrap.less";
 }

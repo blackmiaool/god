@@ -25,6 +25,7 @@ module.exports = {
         alias: {
             'vue$': 'vue/dist/vue.common.js',
             'src': path.resolve(__dirname, '../src'),
+            'common': path.resolve(__dirname, '../common'),
             'assets': path.resolve(__dirname, '../src/assets'),
             'components': path.resolve(__dirname, '../src/components')
         }
@@ -57,7 +58,7 @@ module.exports = {
                     },
                 }],
                 include: [
-          path.join(projectRoot, 'src')
+          path.join(projectRoot, 'src'), path.join(projectRoot, 'common')
         ],
                 exclude: /node_modules/,
                     }],
@@ -80,7 +81,7 @@ module.exports = {
                 test: /\.js$/,
                 loader: 'eslint',
                 include: [
-          path.join(projectRoot, 'src')
+          path.join(projectRoot, 'src'), path.join(projectRoot, 'common')
         ],
                 exclude: /node_modules/
       }
@@ -94,7 +95,7 @@ module.exports = {
                 test: /\.js$/,
                 loader: 'babel',
                 include: [
-          path.join(projectRoot, 'src')
+          path.join(projectRoot, 'src'), path.join(projectRoot, 'common')
         ],
                 exclude: /node_modules/
       },

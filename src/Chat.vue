@@ -43,20 +43,20 @@
         <div class="right-info-wrap">
             <div class="bulletin">
                 <header>Bulletin</header>
-                <main>Bulletin Content</main>
+                <main>{{currentRoom.bulletin}}</main>
             </div>
             <div class="member-list-wrap">
                 <header>
                     Members
                 </header>
                 <ul>
-                    <li>
+                    <li v-for="member in currentRoom.members">
                         <span class="avatar">
                         
                             <img  src="./assets/avatar.gif" alt="">
                         </span>
                         <span class="state glyphicon glyphicon-phone"></span>
-                        <span class="name">blackmiaool</span>
+                        <span class="name">{{member.name}}</span>
                     </li>
                 </ul>
             </div>
@@ -67,31 +67,58 @@
 <script>
     import Message from './components/Message';
     import MessageSection from './components/MessageSection';
-
     import StickScroll from './directives/stick-scroll';
     import LeftTabs from './components/LeftTabs';
-    //    import Vue from 'vue';
-    //    Vue.directive('contenteditable-model', {
-    //        twoWay: true,
-    //        bind: function(el) {
-    //            el.handler = function() {
-    //                this.set(el.innerHTML)
-    //            }.bind(this)
-    //            el.addEventListener('keyup', el.handler)
-    //        },
-    //        update: function(newValue, oldValue) {
-    //            this.el.innerHTML = newValue || ''
-    //        },
-    //        unbind: function(el) {
-    //            el.removeEventListener('keyup', el.handler)
-    //        }
-    //    })
-
-    const socket = window.io(':9012');
-
+    import socket from "./io";
+    console.log(socket)
     export default {
-        name: 'app',
+        name: 'Chat',
         mounted() {
+            //            console.log(this.$route)
+            this.rooms = this.$route.params.rooms;
+            if (!socket.context.logged) {
+                router.replace("/login")
+            }
+            if (!this.rooms || this.rooms.length === 0) {
+                return;
+            }
+            socket.on('sync-members', ({
+                name,
+                members
+            }) => {
+                this.rooms.filter(function (room) {
+                    return room.name === name;
+                })[0].members = members;
+            });
+            socket.on('message', ({
+                room: roomName,
+                type,
+                content,
+                name,
+                avatar,
+                time,
+            }) => {
+                const targetRoom = this.rooms.filter(function (room) {
+                    return room.name === roomName;
+                })[0];
+                if (!targetRoom) {
+                    return;
+                }
+                targetRoom.messages.push({
+                    name,
+                    time: (new Date(time)).format("hh:mm"),
+                    content,
+                    avatar: avatar || '/static/img/avatar.gif',
+                });
+                console.log({
+                    roomName,
+                    type,
+                    content,
+                    name,
+                    avatar,
+                    time,
+                })
+            });
             socket.on('cr-message', (data) => {
                 console.log(this);
                 if (data.name === "robot10") {
@@ -109,7 +136,7 @@
                     }
                 }
                 console.log(data);
-                const targetRoom = this.rooms.filter(function(room) {
+                const targetRoom = this.rooms.filter(function (room) {
                     return room.name === data.room;
                 })[0];
                 if (targetRoom) {
@@ -163,17 +190,29 @@
         methods: {
             send() {
                 console.log(this.inputText);
-
-                socket.emit("god-message", {
-                    content: this.inputText,
-                    room: this.currentRoom.name,
-                });
-                this.currentRoom.messages.push({
-                    name: "blackmiaool",
-                    time: (new Date()).format("hh:mm"),
-                    content: this.inputText,
-                    avatar: "/static/img/avatar.gif",
-                });
+                const content = this.inputText;
+                if (!content) {
+                    return;
+                }
+                if (socket.context.logged) {
+                    socket.send({
+                        room: this.currentRoom.name,
+                        type: "text",
+                        content,
+                    });
+                } else {
+                    alert("Connection is broken");
+                }
+                //                socket.emit("god-message", {
+                //                    content: this.inputText,
+                //                    room: this.currentRoom.name,
+                //                });
+                //                this.currentRoom.messages.push({
+                //                    name: "blackmiaool",
+                //                    time: (new Date()).format("hh:mm"),
+                //                    content: this.inputText,
+                //                    avatar: "/static/img/avatar.gif",
+                //                });
                 this.$input.innerHTML = "";
             },
             input($event) {
@@ -184,12 +223,12 @@
             }
         },
         components: {
-            Message,LeftTabs
+            Message,
+            LeftTabs
 
         },
         directives: {
             StickScroll
         }
     }
-
 </script>
