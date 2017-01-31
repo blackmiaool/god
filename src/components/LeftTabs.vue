@@ -13,8 +13,8 @@
             </div>
             <div class="tabs">
                 <router-link to="/chat" data-tab-name="groups" class="clickable"></router-link>
-                <div data-tab-name="search" class="clickable"></div>
-                <div data-tab-name="other" class="clickable"></div>
+<!--                <div data-tab-name="search" class="clickable"></div>-->
+<!--                <div data-tab-name="other" class="clickable"></div>-->
                 <router-link to="/login" data-tab-name="login" class="clickable"></router-link>
             </div>
             <div class="tools">
