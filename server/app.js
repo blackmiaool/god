@@ -25,12 +25,33 @@ app.use(convert(json()));
 app.use(convert(logger()));
 app.use(convert(require('koa-static')(__dirname + '/public')));
 
+var avatar = require('./avatar-generator')({
+    //Optional settings. Default settings in 'settings.js'
+    order: 'background face clothes head hair eye mouth'.split(' '), //order in which sprites should be combined
+    //    images:require('path').join(__dirname,'./img'), // path to sprites
+    //    convert: 'convert' //Path to imagemagick convert
+});
+
 
 app.use(convert(views(__dirname + '/views', {
     extension: 'jade'
 })));
+//
+//avatar(Math.random() + "", 'male', 20)
+//    .toBuffer(function (err, buffer) {
+//        console.log(`data:image/png;base64,` + buffer.toString('base64'));
+//    });
+router.post('/avatar', async(ctx, next) => {
+    await new Promise(function (resolve) {
+        avatar(Math.random() + "", 'male', 44)
+            .toBuffer(function (err, buffer) {
+                ctx.body = `data:image/png;base64,` + buffer.toString('base64');
+                ctx.status = 200;
+                resolve();
+            });
+    });
 
-
+});
 
 router.post('/login', async(ctx, next) => {
     const name = ctx.request.body.name;
@@ -70,12 +91,13 @@ router.post('/login', async(ctx, next) => {
 router.post('/register', async(ctx, next) => {
     const name = ctx.request.body.name;
     const password = ctx.request.body.password;
+    const avatar = ctx.request.body.avatar;
     const checkResult = registerCheck("server", name, password);
     if (checkResult) {
         checkResult.code = 1;
         ctx.body = checkResult;
     } else {
-        const result = await db.register(name, password);
+        const result = await db.register(name, password, avatar);
         if (!result) {
             ctx.body = {
                 code: 0,

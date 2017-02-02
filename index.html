@@ -7575,7 +7575,10 @@
 
 <body>
     <div id="app">
-        <router-view></router-view>
+        <LeftTabs :avatar="avatar"></LeftTabs>
+        <keep-alive>
+            <router-view></router-view>
+        </keep-alive>
     </div>
     <!-- built files will be auto injected -->
 </body>

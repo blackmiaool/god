@@ -33,9 +33,7 @@ db.serialize(function () {
 
 
     db.all(`SELECT * FROM user;
-    `, function (e, data) {
-        console.log(data)
-    });
+    `, function (e, data) {});
 });
 //db.close();
 async function login($name, $password) {
@@ -89,14 +87,15 @@ async function getRoomsInfo(rooms) {
     await promise;
     return rooms;
 }
-async function register($name, $password) {
+async function register($name, $password, $avatar) {
     let result;
     result = await new Promise(function (resolve, reject) {
         db.serialize(function () {
-            db.run(`INSERT INTO user (Name,Password,Rooms) VALUES ($name,$password,$rooms);`, {
+            db.run(`INSERT INTO user (Name,Password,Rooms,Avatar) VALUES ($name,$password,$rooms,$avatar);`, {
                 $name,
                 $password,
-                $rooms: `["god"]`
+                $rooms: `["god"]`,
+                $avatar,
             }, function (e) {
                 if (e) {
                     console.log(e);

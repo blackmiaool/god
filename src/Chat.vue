@@ -1,6 +1,5 @@
 <template>
-    <div class="chat-page">
-        <LeftTabs/>
+    <div class="chat-page">       
         <div class="list-wrap">
             <header>已加入列表</header>
             <ul>
@@ -68,20 +67,12 @@
     import Message from './components/Message';
     import MessageSection from './components/MessageSection';
     import StickScroll from './directives/stick-scroll';
-    import LeftTabs from './components/LeftTabs';
+
     import socket from "./io";
     console.log(socket)
     export default {
         name: 'Chat',
-        mounted() {
-            //            console.log(this.$route)
-            this.rooms = this.$route.params.rooms;
-            if (!socket.context.logged) {
-                router.replace("/login")
-            }
-            if (!this.rooms || this.rooms.length === 0) {
-                return;
-            }
+        created() {
             socket.on('sync-members', ({
                 name,
                 members
@@ -149,45 +140,43 @@
                     });
                 }
             });
-            this.currentRoom = this.rooms[0];
+        },
+        beforeRouteEnter(to, from, next) {
+            console.log("before")
+            next(vm => {
+                console.log(vm)
+                vm.setDefaultRoom();
+            });
+        },
+        mounted() {
+            if (!socket.context.logged) {
+                console.log(123)
+                router.replace("/login")
+            }
+            this.setDefaultRoom();
+
+
         },
         data() {
             return {
                 currentRoom: {},
-                rooms: [{
-                    name: "god",
-                    avatar: require("assets/avatar.gif"),
-                    messages: [{
-                        name: "blackmiaool",
-                        time: "16:36",
-                        content: "<h1></h1>234#(乖) 年后可#(乖) 年后可以以这个为DEMO",
-                        type: "text",
-                        avatar: require("assets/avatar.gif"),
-                    }],
-                }, {
-                    name: "MDZZ",
-                    avatar: require("assets/lolo.jpg"),
-                    messages: [{
-                        name: "blackmiaool",
-                        time: "16:36",
-                        content: "WTF-MDZZ",
-                        type: "text",
-                        avatar: require("assets/avatar.gif"),
-                    }],
-                }, {
-                    name: "fiora",
-                    avatar: require("assets/fiora.jpeg"),
-                    messages: [{
-                        name: "blackmiaool",
-                        time: "16:36",
-                        content: "WTF-fiora",
-                        type: "text",
-                        avatar: require("assets/avatar.gif"),
-                    }],
-                }],
+                rooms: [],
             }
         },
         methods: {
+            setDefaultRoom() {
+                console.log(this.$route.params.rooms)
+                if (this.$route.params.rooms) {
+                    this.rooms = this.$route.params.rooms;
+                }
+
+
+                if (!this.rooms || this.rooms.length === 0) {
+                    return;
+                }
+
+                this.currentRoom = this.rooms[0];
+            },
             send() {
                 console.log(this.inputText);
                 const content = this.inputText;
@@ -224,7 +213,7 @@
         },
         components: {
             Message,
-            LeftTabs
+
 
         },
         directives: {

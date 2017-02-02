@@ -1,6 +1,6 @@
 <template>
     <div class="login-page">
-        <LeftTabs/>
+        
         <main>          
            <div class="login-panel deep-panel">
                <div class="input-block">                    
@@ -15,6 +15,7 @@
                     <input name="password2" v-if="mode==='register'" class="deep-input" type="password" placeholder="Password again (optional)" v-model="password2">
                     <div class="err" v-if="webError.password2">{{webError.password2}}</div>
                 </div>
+                <div v-if="mode==='register'" @click="refreshAvatar()" class="avatar-preview" :style="{'background-image':'url('+avatar+')'}" ></div>
                 <label class="remember deep-select">
                     <input name="remember" type="checkbox" checked>
                     <span class="deep-checkbox"></span>
@@ -36,7 +37,6 @@
 </template>
 
 <script>
-    import LeftTabs from './components/LeftTabs';
     import $ from "jquery";
     import md5 from 'md5';
     import {
@@ -61,6 +61,7 @@
         },
         data() {
             return {
+                avatar: "",
                 mode: "register",
                 name: "",
                 password: "",
@@ -70,7 +71,15 @@
             }
         },
         computed: {},
+        mounted() {
+            this.refreshAvatar()
+        },
         methods: {
+            refreshAvatar() {
+                $.post("//" + location.hostname + `:${config.serverPort}/avatar`, {}, (result) => {
+                    this.avatar = result;
+                });
+            },
             setMode(mode) {
                 this.mode = mode;
                 this.webError = {};
@@ -88,10 +97,13 @@
                     return;
                 }
 
+
+
                 if (this.mode === "register") {
                     $.post("//" + location.hostname + `:${config.serverPort}/${this.mode}`, {
                         name: this.name,
-                        password: md5(this.password)
+                        password: md5(this.password),
+                        avatar: this.avatar
                     }, (result) => {
                         if (!result.code) {
                             doLogin.call(this);
@@ -115,8 +127,9 @@
                         name: this.name,
                         password: md5(this.password)
                     }, (result) => {
+                        console.log(result)
                         if (!result.code) {
-                            onSuccess(result.data);
+                            onSuccess.call(this, result.data);
                         } else if (result.key) {
                             this.webError = {
                             [result.key]: result.msg
@@ -131,6 +144,8 @@
 
                 function onSuccess(data) {
                     console.log("success", data);
+                    console.log(this);
+                    this.$root.avatar = data.avatar;
                     socket.context.logged = true;
                     window.router.push({
                         name: 'Chat',
@@ -142,7 +157,7 @@
             }
         },
         components: {
-            LeftTabs
+
 
         },
     }

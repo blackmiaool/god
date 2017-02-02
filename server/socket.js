@@ -28,7 +28,6 @@ function isEmptyObject(a) {
 }
 
 function syncMembers(roomName, userName) {
-    console.log("sync-members");
     for (const name in roomMap[roomName]) {
         const member = roomMap[roomName][name];
         if (member.name !== userName) {
@@ -47,6 +46,23 @@ function broadcaseMessage(roomName, message) {
     }
 }
 
+function disconnectSocket(socket) {
+    if (!socket.context.name) {
+        return;
+    }
+    socket.context.rooms.forEach(function (room) {
+        if (!roomMap[room.name]) {
+            return;
+        }
+        delete roomMap[room.name][socket.context.name];
+        if (isEmptyObject(roomMap[room.name])) {
+            delete roomMap[room.name];
+        } else {
+            syncMembers(room.name, socket.context.name);
+        }
+    });
+}
+
 function init(io) {
     io.on('connection', function (socket) {
         socket.context = {};
@@ -61,7 +77,6 @@ function init(io) {
             if (!roomMap[roomName] || !roomMap[roomName][socket.context.name]) {
                 return;
             }
-            console.log('roomName', roomName)
             broadcaseMessage(roomName, {
                 room: roomName,
                 type,
@@ -72,17 +87,7 @@ function init(io) {
             });
         });
         socket.on('disconnect', function () {
-            if (!socket.context.name) {
-                return;
-            }
-            socket.context.rooms.forEach(function (room) {
-                delete roomMap[room.name][socket.context.name];
-                if (isEmptyObject(roomMap[room.name])) {
-                    delete roomMap[room.name];
-                } else {
-                    syncMembers(room.name, socket.context.name);
-                }
-            });
+            disconnectSocket(socket);
         });
         socket.on('login', (data, cb) => {
             let ret;
@@ -111,6 +116,9 @@ function init(io) {
                         syncMembers(room.name, result.name);
                         room.members = roomMap[room.name];
                     });
+                    if (socket.context.name) {
+                        disconnectSocket(socket);
+                    }
                     for (const i in result) {
                         socket.context[i] = result[i];
                     }

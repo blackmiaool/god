@@ -14,4 +14,11 @@ npm run dev
 npm run build
 ```
 
-For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## TODO
+1. image sending
+1. image message type
+1. code message type
+1. create room
+1. emotion support
+1. history keeping
+1. notification

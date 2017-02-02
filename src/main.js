@@ -4,11 +4,8 @@ import Vue from 'vue'
 import Chat from './Chat'
 import Login from './Login'
 import socket from "./io";
-
-var a = 1;
-if (a - 1) {
-    console.log(socket)
-}
+import LeftTabs from './components/LeftTabs';
+import VueRouter from 'vue-router';
 
 require("./less/style.less");
 /* eslint-disable no-new */
@@ -35,15 +32,13 @@ Date.prototype.format = function (format) {
     return format;
 };
 
-import VueRouter from 'vue-router'
-
 Vue.use(VueRouter);
 
 const routes = [
     {
         path: '/',
         component: Chat,
-        name: "Chat"
+
     },
     {
         path: '/login',
@@ -51,7 +46,8 @@ const routes = [
     },
     {
         path: '/chat',
-        component: Chat
+        component: Chat,
+        name: "Chat"
     }
 ];
 socket.on("disconnection", function () {
@@ -61,6 +57,17 @@ window.router = new VueRouter({
     routes // short for routes: routes
 });
 
+//Vue.component('lefttabs', LeftTabs);
+
 new Vue({
-    router: window.router
+    router: window.router,
+    data: {
+        avatar: ""
+    },
+    mounted() {
+
+    },
+    components: {
+        'lefttabs': LeftTabs
+    }
 }).$mount('#app');
