@@ -15,6 +15,7 @@ const db = require('./db.js');
 const router = new Router();
 const socket = require("./socket");
 const config = require("../config.js");
+const fs = require('fs');
 
 import {
     registerCheck
@@ -97,7 +98,12 @@ router.post('/register', async(ctx, next) => {
         checkResult.code = 1;
         ctx.body = checkResult;
     } else {
-        const result = await db.register(name, password, avatar);
+        const buf = Buffer.from(avatar.slice(22), 'base64');
+        const avatarSrc = "//" + ctx.request.header.host.replace(/:\d+/, "") + `:${config.serverPort}/avatar/${name}.png`;
+        console.log(avatarSrc, "avatarSrc");
+        fs.writeFileSync(`public/avatar/${name}.png`, buf);
+        //        http://192.168.1.111:9012/avatar/blackmiaool6.png
+        const result = await db.register(name, password, avatarSrc);
         if (!result) {
             ctx.body = {
                 code: 0,
