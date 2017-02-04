@@ -44,7 +44,7 @@ app.use(convert(views(__dirname + '/views', {
 //    });
 router.post('/avatar', async(ctx, next) => {
     await new Promise(function (resolve) {
-        avatar(Math.random() + "", 'male', 44)
+        avatar(Math.random() + "", 'male', 50)
             .toBuffer(function (err, buffer) {
                 ctx.body = `data:image/png;base64,` + buffer.toString('base64');
                 ctx.status = 200;
