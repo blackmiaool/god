@@ -17,7 +17,7 @@
                 </div>
                 <div v-if="mode==='register'" @click="refreshAvatar()" class="avatar-preview" :style="{'background-image':'url('+avatar+')'}" ></div>
                 <label class="remember deep-select">
-                    <input name="remember" type="checkbox" checked>
+                    <input v-model="remember" name="remember" type="checkbox">
                     <span class="deep-checkbox"></span>
                     <span>Remember me</span>
                 </label>
@@ -46,7 +46,7 @@
     import socket from "./io";
     const config = require("../config.js");
 
-    socket.on("sync", function ({
+    socket.on("sync", function({
         avatar,
         rooms,
         name,
@@ -68,6 +68,7 @@
                 password2: "",
                 serverError: {},
                 webError: {},
+                remember: true,
             }
         },
         computed: {},
@@ -89,7 +90,7 @@
                 this.webError = {};
 
                 const checkResult = registerCheck("web", this.name, md5(this.password), this.password2 && this.mode === "register" ? md5(this.password2) : '');
-                console.log("checkResult", checkResult)
+
                 if (checkResult) {
                     this.webError = {
                         [checkResult.key]: checkResult.message
@@ -109,14 +110,14 @@
                             doLogin.call(this);
                         } else if (result.key) {
                             this.webError = {
-                            [result.key]: result.msg
+                                [result.key]: result.msg
                             }
                         } else if (result.msg) {
                             alert(result.msg);
                         } else {
                             alert("error");
                         }
-                        console.log(result)
+
                     });
                 } else {
                     doLogin.call(this);
@@ -127,12 +128,12 @@
                         name: this.name,
                         password: md5(this.password)
                     }, (result) => {
-                        console.log(result)
+
                         if (!result.code) {
                             onSuccess.call(this, result.data);
                         } else if (result.key) {
                             this.webError = {
-                            [result.key]: result.msg
+                                [result.key]: result.msg
                             }
                         } else if (result.msg) {
                             alert(result.msg);
@@ -143,8 +144,6 @@
                 }
 
                 function onSuccess(data) {
-                    console.log("success", data);
-                    console.log(this);
                     this.$root.avatar = data.avatar;
                     socket.context.logged = true;
                     window.router.push({
@@ -161,4 +160,5 @@
 
         },
     }
+
 </script>

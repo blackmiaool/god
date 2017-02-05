@@ -10,8 +10,9 @@
             </div>
             <div class="content-wrap">
                 <div class="content">                    
-                    <MessageSection :data="section.data" :type="section.type" v-for="section in sections">
+                    <MessageSection v-if="type==='text'" :data="section.data" :type="section.type" v-for="section in sections">
                     </MessageSection>
+                    <img v-if="type==='image'" :src="content" class="message-image"/>
                 </div>
             </div>
         </div>
@@ -21,7 +22,7 @@
 <script>
     function tokenMatch(content, matches) {
         const tokens = [];
-        matches.forEach(function (v) {
+        matches.forEach(function(v) {
             let result;
             while (1) {
                 result = v.regexp.exec(content);
@@ -36,12 +37,12 @@
                 })
             }
         });
-        tokens.sort(function (a1, a2) {
+        tokens.sort(function(a1, a2) {
             return a1.index > a2.index ? 1 : -1;
         });
         let result = [];
         let lastIndex = 0;
-        tokens.forEach(function (v, i) {
+        tokens.forEach(function(v, i) {
             if (v.index > lastIndex) {
                 result.push({
                     type: "span",
@@ -80,9 +81,12 @@
 
             }
         },
-        props: ["name", "time", "content", "avatar"],
+        mounted() {
+            console.log("t", this.type)
+        },
+        props: ["name", "time", "content", "avatar", "type"],
         computed: {
-            sections: function () {
+            sections: function() {
                 return tokenMatch(this.content, [{
                     regexp: /#\(([\S]+?)\)\s?/g,
                     type: "MessageTypeYellowBean"
@@ -92,6 +96,7 @@
         },
 
     }
+
 </script>
 <!--
 var a=/#\([\S]+?\)/g;

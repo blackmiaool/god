@@ -60,6 +60,9 @@
     .abs-fill;
     left: @left-tabs-width + @left-list-width;
     right: @right-info-width;
+    &.dragging {
+        filter: blur(3px);
+    }
     header {
         .deep-header(80px);
         margin-top: 24px;
@@ -88,6 +91,10 @@
         .message-wrap {
             position: relative;
             @import "./message.less";
+            .message-image {
+                max-width: 200px;
+                max-height: 200px;
+            }
         }
     }
     footer {
@@ -119,6 +126,7 @@
         .tools-wrap {
             margin-left: 9px;
             [data-tool] {
+                overflow: hidden;
                 display: inline-block;
                 margin: 0 5px;
                 font-size: 22px;
@@ -202,6 +210,7 @@
                     .square(30px);
                     img {
                         width: 100%;
+                        height: 100%;
                         display: block;
                     }
                 }

@@ -15,8 +15,6 @@ npm run build
 ```
 
 ## TODO
-1. image sending
-1. image message type
 1. code message type
 1. create room
 1. emotion support

@@ -11,10 +11,10 @@
                 </li>
             </ul>
         </div>
-        <div class="main-area-wrap">
+        <div class="main-area-wrap image-drop-zone" @drop="drop" @dragenter="dragEnter" @dragleave="dragLeave" @dragexit="dragExit" @dragover="dragOver" @click="dragClear" :ref="'room'+currentRoom.name">
             <main class="deep-panel">
                 <div class="messages-wrap deep-scroll" v-sticky-scroll>
-                    <Message v-for="msg in currentRoom.messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content" type="msg.type">
+                    <Message v-for="msg in currentRoom.messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content" :type="msg.type">
 
                     </Message>
                 </div>
@@ -29,10 +29,12 @@
                     <img src="./assets/deep_ui/little_box3.png" class="bg-img">
                 </div>
                 <div class="tools-wrap">
-                    <i class="glyphicon glyphicon-heart-empty" data-tool="emotion"></i>
-                    <i class="glyphicon glyphicon-picture" data-tool="img"></i>
+                    <i class="glyphicon glyphicon-heart-empty clickable" data-tool="emotion"></i>
+                    <i class="glyphicon glyphicon-picture clickable" data-tool="img">
+                        <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
+                    </i>
                 </div>
-                <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="send">
+                <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="send" @paste="paste">
                 </div>
                 <div @click="send" class="send-wrap clickable">
                     <i class="glyphicon glyphicon-send" data-tool="img"></i>
@@ -52,7 +54,7 @@
                     <li v-for="member in currentRoom.members">
                         <span class="avatar">
                         
-                            <img  src="./assets/avatar.gif" alt="">
+                            <img  :src="member.avatar" alt="">
                         </span>
                         <span class="state glyphicon glyphicon-phone"></span>
                         <span class="name">{{member.name}}</span>
@@ -67,9 +69,14 @@
     import Message from './components/Message';
     import MessageSection from './components/MessageSection';
     import StickScroll from './directives/stick-scroll';
-
+    const loadImage = require("blueimp-load-image");
+    import $ from "jquery";
     import socket from "./io";
-    console.log(socket)
+
+
+    $(document.body).on("mouseover", function() {
+        $(".image-drop-zone").removeClass("dragging")
+    });
     export default {
         name: 'Chat',
         created() {
@@ -77,7 +84,7 @@
                 name,
                 members
             }) => {
-                this.rooms.filter(function (room) {
+                this.rooms.filter(function(room) {
                     return room.name === name;
                 })[0].members = members;
             });
@@ -89,7 +96,7 @@
                 avatar,
                 time,
             }) => {
-                const targetRoom = this.rooms.filter(function (room) {
+                const targetRoom = this.rooms.filter(function(room) {
                     return room.name === roomName;
                 })[0];
                 if (!targetRoom) {
@@ -100,15 +107,8 @@
                     time: (new Date(time)).format("hh:mm"),
                     content,
                     avatar: avatar || '/static/img/avatar.gif',
+                    type
                 });
-                console.log({
-                    roomName,
-                    type,
-                    content,
-                    name,
-                    avatar,
-                    time,
-                })
             });
             socket.on('cr-message', (data) => {
                 console.log(this);
@@ -127,7 +127,7 @@
                     }
                 }
                 console.log(data);
-                const targetRoom = this.rooms.filter(function (room) {
+                const targetRoom = this.rooms.filter(function(room) {
                     return room.name === data.room;
                 })[0];
                 if (targetRoom) {
@@ -142,15 +142,15 @@
             });
         },
         beforeRouteEnter(to, from, next) {
-            console.log("before")
+
             next(vm => {
-                console.log(vm)
+
                 vm.setDefaultRoom();
             });
         },
         mounted() {
             if (!socket.context.logged) {
-                console.log(123)
+
                 router.replace("/login")
             }
             this.setDefaultRoom();
@@ -165,7 +165,7 @@
         },
         methods: {
             setDefaultRoom() {
-                console.log(this.$route.params.rooms)
+
                 if (this.$route.params.rooms) {
                     this.rooms = this.$route.params.rooms;
                 }
@@ -209,6 +209,107 @@
                     this.$input = $event.target;
                 }
                 this.inputText = this.$input.textContent;
+            },
+            paste(e) {
+                console.log(e);
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                const types = (e.clipboardData || e.originalEvent.clipboardData).types;
+
+                console.log(items, types, items.length, items[0])
+                const roomName = this.currentRoom && this.currentRoom.name;
+                if (!roomName) {
+                    return;
+                }
+                if (types.indexOf('Files') > -1) {
+                    for (let index = 0; index < items.length; index++) {
+                        const item = items[index];
+                        if (item.kind === 'file' && item.type.match(/^image/)) {
+                            const reader = new FileReader();
+                            const instance = this;
+                            reader.onloadend = function() {
+                                //                                const img = new Image();
+                                //                                img.src = this.result;
+                                socket.send({
+                                    room: roomName,
+                                    type: "image",
+                                    content: this.result
+                                });
+                                //                                console.log(img)
+                            };
+                            reader.readAsDataURL(item.getAsFile());
+                        }
+                    }
+                    e.preventDefault();
+                }
+            },
+            fileUpload(e) {
+                const roomName = this.currentRoom && this.currentRoom.name;
+                console.log("e2", e);
+                loadImage(
+                    e.target.files[0],
+                    function(canvas) {
+                        socket.send({
+                            room: roomName,
+                            type: "image",
+                            content: canvas.toDataURL()
+                        });
+                    }, {
+                        orientation: true,
+                        maxWidth: 200,
+                        maxHeight: 200
+                    } // Options
+                );
+
+            },
+            drop(e) {
+                this.$refs['room' + this.currentRoom.name].classList.remove("dragging");
+                const roomName = this.currentRoom && this.currentRoom.name;
+                e.stopPropagation();
+                e.preventDefault();
+                console.log(e.dataTransfer)
+                    //                var imageUrl = e.dataTransfer.getData('Text'); // alert(imageUrl);
+
+                var items = e.dataTransfer.items;
+                for (let index = 0; index < items.length; index++) {
+                    const item = items[index];
+                    if (item.kind === 'file' && item.type.match(/^image/)) {
+                        const reader = new FileReader();
+                        const instance = this;
+                        reader.onloadend = function() {
+                            //                                const img = new Image();
+                            //                                img.src = this.result;
+                            socket.send({
+                                room: roomName,
+                                type: "image",
+                                content: this.result
+                            });
+                            //                                console.log(img)
+                        };
+                        reader.readAsDataURL(item.getAsFile());
+                    }
+                }
+            },
+            dragClear(e) {
+                console.log(this.$refs)
+                this.$refs['room' + this.currentRoom.name].classList.remove("dragging");
+            },
+            dragEnter(e) {
+                this.$refs['room' + this.currentRoom.name].classList.add("dragging");
+                e.stopPropagation();
+                e.preventDefault();
+            },
+            dragExit(e) {
+                e.stopPropagation();
+                e.preventDefault();
+            },
+            dragLeave(e) {
+                e.stopPropagation();
+                e.preventDefault();
+            },
+            dragOver(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                //               e.stopPropagation(); // e.preventDefault();
             }
         },
         components: {
@@ -220,4 +321,5 @@
             StickScroll
         }
     }
+
 </script>

@@ -71,6 +71,19 @@ function init(io) {
             type,
             content
         }) {
+            if (type === "image") {
+                if (content.match(/^data:/)) {
+
+                } else {
+
+                }
+            }
+            if (content.length > 2e5) {
+                return;
+            }
+            if (type === "text" && content.length > 300) {
+                return;
+            }
             if (!socket.context.name) {
                 return;
             }
