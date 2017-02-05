@@ -8,7 +8,7 @@
         "dev": "node build/dev-server.js",
         "build": "node build/build.js",
         "lint": "eslint --ext .js,.vue src",
-        "first": "cp config-default.js config.js"
+        "first": "cp config-default.js config.js && cd server/avatar-generator && npm i && cd ../.."
     },
     "dependencies": {
         "blueimp-load-image": "^2.10.0",

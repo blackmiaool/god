@@ -82,7 +82,7 @@
             }
         },
         mounted() {
-            console.log("t", this.type)
+
         },
         props: ["name", "time", "content", "avatar", "type"],
         computed: {

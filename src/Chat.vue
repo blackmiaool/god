@@ -29,17 +29,22 @@
                     <img src="./assets/deep_ui/little_box3.png" class="bg-img">
                 </div>
                 <div class="tools-wrap">
-                    <i class="glyphicon glyphicon-heart-empty clickable" data-tool="emotion"></i>
+                    <i @click="toggleEmotion" class="glyphicon glyphicon-heart-empty clickable" data-tool="emotion"></i>
                     <i class="glyphicon glyphicon-picture clickable" data-tool="img">
                         <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
                     </i>
                 </div>
-                <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="send" @paste="paste">
+                <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="send" @paste="paste" ref="$input">
                 </div>
                 <div @click="send" class="send-wrap clickable">
                     <i class="glyphicon glyphicon-send" data-tool="img"></i>
                 </div>
             </footer>
+            <div v-if="showEmotion" class="emotion-wrap deep-frame">
+                <div v-for="(emotion,index) in baiduEmotions" class="emotion" :style="{ background: 'url('+emotion.src+') no-repeat' }" @click="addEmotion(emotion.name)">
+                    
+                </div>
+            </div>
         </div>
         <div class="right-info-wrap">
             <div class="bulletin">
@@ -73,7 +78,7 @@
     import $ from "jquery";
     import socket from "./io";
 
-
+    require(`assets/avatar.gif`);
     $(document.body).on("mouseover", function() {
         $(".image-drop-zone").removeClass("dragging")
     });
@@ -106,7 +111,7 @@
                     name,
                     time: (new Date(time)).format("hh:mm"),
                     content,
-                    avatar: avatar || '/static/img/avatar.gif',
+                    avatar: avatar,
                     type
                 });
             });
@@ -155,12 +160,26 @@
             }
             this.setDefaultRoom();
 
-
+            this.baiduEmotions.forEach(function(name, i, a) {
+                a[i] = {
+                    name,
+                    src: require(`assets/expressions/${name}.png`)
+                }
+            });
+            console.log(this.baiduEmotions)
         },
         data() {
             return {
                 currentRoom: {},
                 rooms: [],
+                showEmotion: false,
+                baiduEmotions: [
+                    '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
+                    '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
+                    '呼', '笑眼', '冷', '太开心', '滑稽', '勉强', '狂汗', '乖', '睡觉', '惊哭',
+                    '生气', '惊讶', '喷', '爱心', '心碎', '玫瑰', '礼物', '彩虹', '星星月亮', '太阳',
+                    '钱币', '灯泡', '咖啡', '蛋糕', '音乐', 'haha', '胜利', '大拇指', '弱', 'ok',
+                ],
             }
         },
         methods: {
@@ -178,7 +197,6 @@
                 this.currentRoom = this.rooms[0];
             },
             send() {
-                console.log(this.inputText);
                 const content = this.inputText;
                 if (!content) {
                     return;
@@ -202,13 +220,10 @@
                 //                    content: this.inputText,
                 //                    avatar: "/static/img/avatar.gif",
                 //                });
-                this.$input.innerHTML = "";
+                this.$refs.$input.innerHTML = "";
             },
             input($event) {
-                if (!this.$input) {
-                    this.$input = $event.target;
-                }
-                this.inputText = this.$input.textContent;
+                this.inputText = this.$refs.$input.textContent;
             },
             paste(e) {
                 console.log(e);
@@ -290,7 +305,6 @@
                 }
             },
             dragClear(e) {
-                console.log(this.$refs)
                 this.$refs['room' + this.currentRoom.name].classList.remove("dragging");
             },
             dragEnter(e) {
@@ -310,6 +324,16 @@
                 e.stopPropagation();
                 e.preventDefault();
                 //               e.stopPropagation(); // e.preventDefault();
+            },
+            addEmotion(name) {
+                this.$refs.$input.innerHTML += `#(${name})`;
+                this.inputText = this.$refs.$input.textContent;
+                this.showEmotion = false;
+            },
+            toggleEmotion(e) {
+                this.showEmotion = !this.showEmotion;
+                e.stopPropagation();
+                e.preventDefault();
             }
         },
         components: {

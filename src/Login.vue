@@ -53,7 +53,7 @@
     }) {
 
     });
-
+    let autoLoginOnce = false;
     export default {
         name: 'app',
         mounted() {
@@ -73,7 +73,17 @@
         },
         computed: {},
         mounted() {
-            this.refreshAvatar()
+            this.refreshAvatar();
+            if (!autoLoginOnce) {
+                autoLoginOnce = true;
+                const {
+                    name,
+                    password
+                } = JSON.parse(localStorage.getItem("god-account")) || {};
+                if (name) {
+                    this.doLogin(name, password);
+                }
+            }
         },
         methods: {
             refreshAvatar() {
@@ -84,6 +94,44 @@
             setMode(mode) {
                 this.mode = mode;
                 this.webError = {};
+            },
+            doLogin(name, password) {
+                socket.emit("login", {
+                    name: name || this.name,
+                    password: password || md5(this.password)
+                }, (result) => {
+
+                    if (!result.code) {
+                        if (!name) {
+                            localStorage.setItem("god-account", JSON.stringify({
+                                name: this.name,
+                                password: md5(this.password)
+                            }));
+                        }
+                        this.onSuccess(result.data);
+                    } else if (result.key) {
+                        this.webError = {
+                            [result.key]: result.msg
+                        }
+                    } else if (result.msg) {
+                        alert(result.msg);
+                    } else {
+                        alert("error");
+                    }
+                });
+            },
+            onSuccess(data) {
+                if (this.remember) {
+
+
+                }
+                this.$root.avatar = data.avatar;
+                socket.context.logged = true;
+                window.router.push({
+                    name: 'Chat',
+                    params: data
+                });
+                //                    window.router.push("chat");
             },
             send() {
 
@@ -107,7 +155,7 @@
                         avatar: this.avatar
                     }, (result) => {
                         if (!result.code) {
-                            doLogin.call(this);
+                            this.doLogin();
                         } else if (result.key) {
                             this.webError = {
                                 [result.key]: result.msg
@@ -120,38 +168,12 @@
 
                     });
                 } else {
-                    doLogin.call(this);
+                    this.doLogin();
                 }
 
-                function doLogin() {
-                    socket.emit("login", {
-                        name: this.name,
-                        password: md5(this.password)
-                    }, (result) => {
 
-                        if (!result.code) {
-                            onSuccess.call(this, result.data);
-                        } else if (result.key) {
-                            this.webError = {
-                                [result.key]: result.msg
-                            }
-                        } else if (result.msg) {
-                            alert(result.msg);
-                        } else {
-                            alert("error");
-                        }
-                    });
-                }
 
-                function onSuccess(data) {
-                    this.$root.avatar = data.avatar;
-                    socket.context.logged = true;
-                    window.router.push({
-                        name: 'Chat',
-                        params: data
-                    });
-                    //                    window.router.push("chat");
-                }
+
 
             }
         },
