@@ -1,5 +1,5 @@
 <template>
-    <div class="login-page">
+    <div class="top-page-wrap login-page">
         
         <main>          
            <div class="login-panel deep-panel">
@@ -46,7 +46,7 @@
     import socket from "./io";
     const config = require("../config.js");
 
-    socket.on("sync", function({
+    socket.on("sync", function ({
         avatar,
         rooms,
         name,
@@ -182,5 +182,4 @@
 
         },
     }
-
 </script>

@@ -102,7 +102,7 @@ router.post('/register', async(ctx, next) => {
         const avatarSrc = "//" + ctx.request.header.host.replace(/:\d+/, "") + `:${config.serverPort}/avatar/${name}.png`; //TODO must use config file to determine domain
         console.log(avatarSrc, "avatarSrc");
         fs.writeFileSync(`public/avatar/${name}.png`, buf);
-        //        http://192.168.1.111:9012/avatar/blackmiaool6.png
+
         const result = await db.register(name, password, avatarSrc);
         if (!result) {
             ctx.body = {

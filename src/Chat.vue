@@ -1,5 +1,5 @@
 <template>
-    <div class="chat-page">       
+    <div class="top-page-wrap chat-page">       
         <div class="list-wrap">
             <header>已加入列表</header>
             <ul>
