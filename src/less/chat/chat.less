@@ -11,7 +11,7 @@
 .list-wrap {
     width: @left-list-width - 20px;
     position: absolute;
-    left: @left-tabs-width;
+    left: 0;
     top: 0;
     bottom: 0;
     padding: 10px;
@@ -58,7 +58,7 @@
 
 .main-area-wrap {
     .abs-fill;
-    left: @left-tabs-width + @left-list-width;
+    left: @left-list-width;
     right: @right-info-width;
     &.dragging {
         filter: blur(3px);

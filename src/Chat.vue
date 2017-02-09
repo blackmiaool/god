@@ -147,17 +147,16 @@
             });
         },
         beforeRouteEnter(to, from, next) {
-
             next(vm => {
+                if (!socket.context.logged) {
 
+                    router.replace("/login")
+                }
                 vm.setDefaultRoom();
             });
         },
         mounted() {
-            if (!socket.context.logged) {
 
-                router.replace("/login")
-            }
             this.setDefaultRoom();
 
             this.baiduEmotions.forEach(function(name, i, a) {
@@ -166,7 +165,6 @@
                     src: require(`assets/expressions/${name}.png`)
                 }
             });
-            console.log(this.baiduEmotions)
         },
         data() {
             return {
