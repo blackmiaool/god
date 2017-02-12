@@ -433,28 +433,54 @@
     margin: 7px;
     display: block;
     font-weight: normal;
+    color: wheat;
+    span {
+        position: relative;
+    }
     .clickable;
-    &>input[type="checkbox"] {
+    &>input[type="checkbox"],
+    &>input[type="radio"] {
         display: none;
     }
-    .deep-checkbox {
-        .square(15px);
+    [type="checkbox"]+.deep-checkbox {
         .bg("@{path}/checkbox_bg.png");
+    }
+    [type="radio"]+.deep-checkbox {
+        .bg("@{path}/radio_bg.png");
+    }
+    .deep-checkbox {
+        .square(20px);
         display: inline-block;
         position: relative;
         vertical-align: middle;
         margin-right: 4px;
     }
-    [type="checkbox"]:checked+.deep-checkbox {
-        &:before {
-            content: "";
-            .square(9px);
-            margin: 3px;
-            //            .square(15px);
-            .abs-fill;
-            display: block;
-            vertical-align: middle;
-            .bg("@{path}/checkbox_mark.png");
+    [type="checkbox"],
+    [type="radio"] {
+        &:checked+.deep-checkbox {
+            &:before {
+                content: "";
+                .square(12px);
+                margin: 3px;
+                //            .square(15px);
+                .abs-fill;
+                display: block;
+                vertical-align: middle;
+            }
+        }
+    }
+    [type="checkbox"] {
+        &:checked+.deep-checkbox {
+            &:before {
+                .bg("@{path}/checkbox_mark.png");
+            }
+        }
+    }
+    [type="radio"] {
+        &:checked+.deep-checkbox {
+            &:before {
+                .bg("@{path}/radio_mark.png");
+            }
         }
     }
 }

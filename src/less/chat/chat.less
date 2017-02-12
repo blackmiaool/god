@@ -15,14 +15,18 @@
     top: 0;
     bottom: 0;
     padding: 10px;
+    display: flex;
+    flex-direction: column;
     header {
         margin: 0px 0px;
         padding-bottom: 10px;
         border-bottom: @splitter 1px solid;
     }
     ul {
+        flex: 1;
         padding: 0;
         margin: 10px 0 0 0;
+        overflow: auto;
         li {
             &.selected {
                 background-color: rgba(10, 0, 0, 0.8);

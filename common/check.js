@@ -1,44 +1,45 @@
+import {
+    //    errorMap,
+    getError,
+    //    successData
+} from "./error.js";
+
 function registerCheck(mode, name, password, password2) {
     if (typeof name !== "string") {
-        return {
+        return getError(8, {
             key: "name",
-            message: `Invalid name type`
-        }
+        });
     }
 
     if (encodeURIComponent(name).length > 32) {
-        return {
+        return getError(9, {
             key: "name",
-            message: `Username too long(exceeds ${encodeURIComponent(name).length - 32}) chars`
-        }
+            msg: `Username too long(exceeds ${encodeURIComponent(name).length - 32}) chars`
+        });
     }
     if (name.length < 2) {
-        return {
-            key: "name",
-            message: "Username should be longer than 1"
-        }
+        return getError(10, {
+            key: "name"
+        });
     }
 
     if (typeof password !== "string") {
-        return {
+        return getError(8, {
             key: "password",
-            message: `Invalid password type`
-        }
+        });
     }
     if (mode === "server") {
         if (encodeURIComponent(password).length !== 32) {
-            return {
+            return getError(11, {
                 key: "password",
-                message: `Invalid password length`
-            }
+            });
         }
     }
 
     if (password2 && password2 !== password) {
-        return {
+        return getError(12, {
             key: "password2",
-            message: "Should be same with password"
-        }
+        });
     }
     return false;
 }

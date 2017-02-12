@@ -1,7 +1,11 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.cached.Database('db');
 const config = require("../config.js");
-
+import {
+    errorMap,
+    getError,
+    successData
+} from "../common/error.js";
 db.serialize(function () {
 
     db.run(`CREATE TABLE user (
@@ -61,7 +65,7 @@ async function login($name, $password) {
     return result;
 }
 async function getRoomsInfo(rooms) {
-    rooms = JSON.parse(JSON.stringify(rooms));
+    rooms = JSON.parse(JSON.stringify(rooms)) || [];
     let promise = new Promise(function (resolve) {
         resolve();
     });
@@ -87,6 +91,123 @@ async function getRoomsInfo(rooms) {
     await promise;
     return rooms;
 }
+async function joinRoom($name, $roomName) {
+    let result = await new Promise(function (resolve, reject) {
+        const p1 = new Promise(function (resolve, reject) {
+            db.get(`SELECT Admin as admin FROM room WHERE Name=$roomName;`, {
+                $roomName,
+            }, function (e, result) {
+                if (e) {
+                    console.log(e);
+                    reject(e);
+                } else {
+                    if (result && result.admin) {
+                        resolve();
+                    } else {
+                        reject(errorMap[2]);
+                    }
+                }
+            });
+        }).then(function () {
+            return new Promise(function (resolve, reject) {
+                db.get(`SELECT Rooms as rooms FROM user WHERE Name=$name;`, {
+                    $name,
+                }, function (e, result) {
+
+                    if (e) {
+                        console.log(e);
+                        reject(e);
+                    } else {
+                        resolve(JSON.parse(result.rooms));
+                    }
+                });
+            });
+        }).then(function ($rooms) {
+            return new Promise(function (resolve, reject) {
+                if ($rooms.indexOf($roomName) !== -1) {
+                    reject(errorMap[5]);
+                    return;
+                }
+                $rooms.push($roomName);
+                db.run(`UPDATE user SET Rooms=$rooms WHERE Name=$name;`, {
+                    $name,
+                    $rooms: JSON.stringify($rooms),
+                }, function (e) {
+                    if (e) {
+                        console.log(e);
+                        reject(e);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        }).then(function () {
+            resolve(false);
+        }).catch(function (e) {
+            console.log("e", e);
+            reject(e);
+        });
+    });
+
+    return result;
+}
+async function createRoom($name, $roomName) {
+    let result = await new Promise(function (resolve, reject) {
+        let $rooms;
+        const p1 = new Promise(function (resolve, reject) {
+            db.run(`INSERT INTO room (Name,Bulletin,Avatar,Admin) VALUES ($roomName,$bulletin,$avatar,$name);`, {
+                $roomName,
+                $bulletin: `Hello`,
+                $avatar: config.roomDefaultAvatar,
+                $name,
+            }, function (e) {
+                if (e) {
+                    console.log(e);
+                    reject(e);
+                } else {
+                    resolve();
+                }
+            });
+        });
+        p1.then(function () {
+            return new Promise(function (resolve, reject) {
+                db.get(`SELECT Rooms as rooms FROM user WHERE Name=$name;`, {
+                    $name,
+                }, function (e, result) {
+                    $rooms = JSON.parse(result.rooms);
+                    if (e) {
+                        console.log(e);
+                        reject(e);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        }).then(function () {
+            return new Promise(function (resolve, reject) {
+                $rooms.push($roomName);
+                db.run(`UPDATE user SET Rooms=$rooms WHERE Name=$name;`, {
+                    $name,
+                    $rooms: JSON.stringify($rooms),
+                }, function (e) {
+                    if (e) {
+                        console.log(e);
+                        reject(e);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        }).then(function () {
+            resolve(false);
+        }).catch(function (e) {
+            reject(e);
+        });
+    });
+
+    return result;
+}
+
 async function register($name, $password, $avatar) {
     let result;
     result = await new Promise(function (resolve, reject) {
@@ -112,5 +233,7 @@ async function register($name, $password, $avatar) {
 export {
     register,
     getRoomsInfo,
-    login
+    login,
+    createRoom,
+    joinRoom
 }

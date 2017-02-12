@@ -1,6 +1,11 @@
 import {
     registerCheck
 } from "../common/check.js";
+import {
+    errorMap,
+    getError,
+    successData
+} from "../common/error.js";
 const db = require('./db.js');
 const roomMap = {};
 
@@ -27,10 +32,14 @@ function isEmptyObject(a) {
     return true;
 }
 
-function syncMembers(roomName, userName) {
+function syncRoom(socket, roomName) {
+
+}
+
+function syncMembers(roomName, exception) {
     for (const name in roomMap[roomName]) {
         const member = roomMap[roomName][name];
-        if (member.name !== userName) {
+        if (exception && member.name !== exception) {
             member.socket.emit("sync-members", {
                 name: roomName,
                 members: roomMap[roomName]
@@ -50,6 +59,7 @@ function disconnectSocket(socket) {
     if (!socket.context.name) {
         return;
     }
+    console.log("222", socket.context.rooms)
     socket.context.rooms.forEach(function (room) {
         if (!roomMap[room.name]) {
             return;
@@ -63,6 +73,20 @@ function disconnectSocket(socket) {
     });
 }
 
+function joinRoom(socket, roomName) {
+    if (!roomMap[roomName]) {
+        roomMap[roomName] = {};
+    }
+    roomMap[roomName][socket.context.name] = {
+        name: socket.context.name,
+        avatar: socket.context.avatar
+    };
+    Object.defineProperty(roomMap[roomName][socket.context.name], 'socket', {
+        enumerable: false,
+        value: socket
+    });
+}
+
 function init(io) {
     io.on('connection', function (socket) {
         socket.context = {};
@@ -71,6 +95,9 @@ function init(io) {
             type,
             content
         }) {
+            if (!socket.context.name) {
+                cb(errorMap[13]);
+            }
             if (type === "image") {
                 if (content.match(/^data:/)) {
 
@@ -84,9 +111,7 @@ function init(io) {
             if (type === "text" && content.length > 300) {
                 return;
             }
-            if (!socket.context.name) {
-                return;
-            }
+
             if (!roomMap[roomName] || !roomMap[roomName][socket.context.name]) {
                 return;
             }
@@ -99,47 +124,100 @@ function init(io) {
                 time: Date.now()
             });
         });
+
+        socket.on('get-room', function ({
+            name: roomName,
+        }, cb) {
+            if (!socket.context.name) {
+                cb(errorMap[13]);
+            }
+            if (roomName.length > 10) {
+                cb(errorMap[3]);
+            }
+            db.getRoomsInfo([roomName]).then(function (rooms) {
+                rooms.forEach(function (room) {
+                    room.members = roomMap[room.name];
+                });
+
+                cb(successData(rooms[0]));
+            });
+        });
+
+        socket.on('create-room', function ({
+            name: roomName,
+        }, cb) {
+            if (!socket.context.name) {
+                cb(errorMap[13]);
+            }
+            if (roomName.length > 10) {
+                cb(errorMap[3]);
+            }
+            db.createRoom(socket.context.name, roomName).then(function (result) {
+                joinRoom(socket, roomName);
+                cb(errorMap[0]);
+            }).catch(function (result) {
+                console.log("result", result);
+                if (result.code === 'SQLITE_CONSTRAINT') {
+                    cb(errorMap[7]);
+                } else {
+
+                    cb(errorMap[1]);
+                }
+            });
+        });
+        socket.on('join-room', function ({
+            name: roomName,
+        }, cb) {
+            if (!socket.context.name) {
+                cb(errorMap[13]);
+            }
+            if (roomName.length > 10) {
+                cb(errorMap[3]);
+            }
+            db.joinRoom(socket.context.name, roomName).then(function (result) {
+                joinRoom(socket, roomName);
+                syncMembers(roomName, socket.context.name);
+                cb(errorMap[0]);
+            }).catch(function (result) {
+                console.log("result", result);
+                if (typeof result.code === "number") {
+                    cb(result);
+                } else {
+
+                    cb(errorMap[1]);
+                }
+            });
+        });
         socket.on('disconnect', function () {
             disconnectSocket(socket);
         });
         socket.on('login', (data, cb) => {
-            let ret;
             const checkResult = registerCheck("server", data.name, data.password);
             if (checkResult) {
                 checkResult.code = 1;
-                ret = checkResult;
-                cb(ret);
+                cb(checkResult);
                 return;
             }
             db.login(data.name, data.password).then(function (result) {
                 db.getRoomsInfo(JSON.parse(result.rooms)).then(function (rooms) {
-                    result.rooms = rooms;
-                    result.rooms.forEach(function (room) {
-                        if (!roomMap[room.name]) {
-                            roomMap[room.name] = {};
-                        }
-                        roomMap[room.name][result.name] = {
-                            name: result.name,
-                            avatar: result.avatar
-                        };
-                        Object.defineProperty(roomMap[room.name][result.name], 'socket', {
-                            enumerable: false,
-                            value: socket
-                        });
-                        syncMembers(room.name, result.name);
-                        room.members = roomMap[room.name];
-                    });
+                    console.log(111, rooms)
+
                     if (socket.context.name) {
                         disconnectSocket(socket);
                     }
                     for (const i in result) {
                         socket.context[i] = result[i];
                     }
-                    cb({
-                        code: 0,
-                        msg: "ok",
-                        data: getSyncData(socket)
+                    socket.context.rooms = rooms;
+                    socket.context.rooms.forEach(function (room) {
+                        if (!roomMap[room.name]) {
+                            roomMap[room.name] = {};
+                        }
+                        joinRoom(socket, room.name);
+                        syncMembers(room.name, result.name);
+                        room.members = roomMap[room.name];
                     });
+                    cb(successData(getSyncData(socket)));
                 });
                 //                result.rooms = db.getRoomsInfo(result.rooms);
 
@@ -147,18 +225,13 @@ function init(io) {
 
             }).catch(function (result) {
 
+                let ret;
                 console.log(result);
                 if (result === true) {
-                    ret = {
-                        code: 2,
-                        key: "password",
-                        msg: "Wrong password or wrong nickname"
-                    }
+                    ret = getError(6);
+                    ret.key = "password";
                 } else {
-                    ret = {
-                        code: 3,
-                        msg: "DB error"
-                    }
+                    ret = errorMap[1];
                 }
                 cb(ret);
             });

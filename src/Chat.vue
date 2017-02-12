@@ -2,7 +2,7 @@
     <div class="top-page-wrap chat-page">       
         <div class="list-wrap">
             <header>已加入列表</header>
-            <ul>
+            <ul class="deep-scroll">
                 <li v-for="room in rooms" class="clickable" @click="currentRoom=room" :class="{selected:currentRoom===room}">
                     <span class="avatar deep-avatar">
                        <div class="avatar-img" :style="{'background-image':'url('+room.avatar+')'}"></div>
@@ -89,9 +89,13 @@
                 name,
                 members
             }) => {
-                this.rooms.filter(function(room) {
+                const targetRoom = this.rooms.filter(function(room) {
                     return room.name === name;
-                })[0].members = members;
+                })[0];
+                if (targetRoom) {
+                    targetRoom.members = members;
+                }
+
             });
             socket.on('message', ({
                 room: roomName,
@@ -152,7 +156,33 @@
 
                     router.replace("/login")
                 }
-                vm.setDefaultRoom();
+                const targetRoomName = vm.$route.params.room;
+                if (targetRoomName) {
+                    const haveRoom = vm.rooms.some((room) => {
+                        if (room.name === targetRoomName) {
+                            vm.currentRoom = room;
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
+                    if (!haveRoom) {
+                        socket.emit("get-room", {
+                            name: targetRoomName
+                        }, (result) => {
+                            if (result.code) {
+                                console.warn(result.msg)
+                            } else {
+                                vm.rooms.push(result.data);
+                                vm.currentRoom = result.data;
+                            }
+
+
+                        });
+                    }
+                } else {
+                    vm.setDefaultRoom();
+                }
             });
         },
         mounted() {
