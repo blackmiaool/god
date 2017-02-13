@@ -33,6 +33,7 @@
                     <i class="glyphicon glyphicon-picture clickable" data-tool="img">
                         <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
                     </i>
+                    <i @click="toggleInputCode" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
                 </div>
                 <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="send" @paste="paste" ref="$input">
                 </div>
@@ -41,9 +42,11 @@
                 </div>
             </footer>
             <div v-if="showEmotion" class="emotion-wrap deep-frame">
-                <div v-for="(emotion,index) in baiduEmotions" class="emotion" :style="{ background: 'url('+emotion.src+') no-repeat' }" @click="addEmotion(emotion.name)">
-                    
+                <div v-for="(emotion,index) in baiduEmotions" class="emotion" :style="{ background: 'url('+emotion.src+') no-repeat' }" @click="addEmotion(emotion.name)">                    
                 </div>
+            </div>
+            <div v-show="showCode" class="code-wrap deep-frame">
+                <textarea ref="code-area"></textarea>
             </div>
         </div>
         <div class="right-info-wrap">
@@ -78,10 +81,19 @@
     import $ from "jquery";
     import socket from "./io";
 
+    const CodeMirror = require('./codemirror/lib/codemirror.js');
+    require('./codemirror/mode/javascript/javascript.js');
+
+    require('./codemirror/lib/codemirror.css');
+    require('./codemirror/theme/monokai.css');
+
     require(`assets/avatar.gif`);
     $(document.body).on("mouseover", function() {
         $(".image-drop-zone").removeClass("dragging")
     });
+
+
+
     export default {
         name: 'Chat',
         created() {
@@ -201,6 +213,7 @@
                 currentRoom: {},
                 rooms: [],
                 showEmotion: false,
+                showCode: false,
                 baiduEmotions: [
                     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
                     '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
@@ -360,8 +373,18 @@
             },
             toggleEmotion(e) {
                 this.showEmotion = !this.showEmotion;
-                e.stopPropagation();
-                e.preventDefault();
+            },
+            toggleInputCode(e) {
+
+                this.showCode = !this.showCode;
+                setTimeout(() => {
+                    var editor = CodeMirror.fromTextArea(this.$refs['code-area'], {
+                        lineNumbers: true,
+                        mode: "text/javascript",
+                        matchBrackets: true,
+                        theme: "monokai"
+                    });
+                }, 300);
             }
         },
         components: {

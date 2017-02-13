@@ -82,6 +82,7 @@
     overflow: auto;
     &::-webkit-scrollbar {
         width: 8px;
+        height: 8px;
         border-radius: 100px;
         background-color: darken(rgb(26, 21, 18), 5%);
         overflow: visible;
@@ -593,7 +594,9 @@
 }
 
 .deep-frame {
+    @width1: 9;
+    @width2: 9px;
     border-style: solid;
-    .border-image( url("@{path}/unit_frame.png") 14 14 14 14 fill stretch);
-    border-width: 14px 14px 14px 14px;
+    .border-image( url("@{path}/unit_frame.png") @width1 @width1 @width1 @width1 fill stretch);
+    border-width: @width2 @width2 @width2 @width2;
 }
