@@ -40,11 +40,8 @@
 
     export default {
         name: 'settings',
-        mounted() {
-            console.log(234234)
-        },
+        mounted() {},
         beforeRouteEnter(to, from, next) {
-            console.log(123)
             next(vm => {
                 if (!socket.context.logged) {
 

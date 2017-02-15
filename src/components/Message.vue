@@ -70,7 +70,6 @@
                 data: content
             });
         }
-
         return result;
 
     }
@@ -81,9 +80,7 @@
 
             }
         },
-        mounted() {
-
-        },
+        mounted() {},
         props: ["name", "time", "content", "avatar", "type"],
         computed: {
             sections: function() {

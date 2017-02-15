@@ -189,13 +189,43 @@
             display: inline-block;
         }
     }
-    .code-wrap {
-        width: 65%;
-        height: 300px;
-        .transform-center;
-        .CodeMirror-hscrollbar,
-        .CodeMirror-vscrollbar {
-            .deep-scroll;
+}
+
+.code-wrap {
+    width: 65%;
+    height: 330px;
+    textarea {
+        opacity: 0;
+    }
+    .transform-center;
+    .CodeMirror-hscrollbar,
+    .CodeMirror-vscrollbar {
+        .deep-scroll;
+    }
+    .tool-bar {
+        @height: 30px;
+        height: @height;
+        background-color: #524a4a;
+        select {
+            color: wheat;
+            background-color: black;
+            outline: none;
+            border: none;
+            height: @height;
+            width: 90px;
+            font-size: 14px;
+            border-radius: 0;
+            padding-left: 3px;
+        }
+        .send-code {
+            height: @height;
+            font-size: 14px;
+            float: right;
+            color: wheat;
+            outline: none;
+            border: none;
+            width: 100px;
+            line-height: 2.3;
         }
     }
 }

@@ -11,44 +11,7 @@
                 </li>
             </ul>
         </div>
-        <div class="main-area-wrap image-drop-zone" @drop="drop" @dragenter="dragEnter" @dragleave="dragLeave" @dragexit="dragExit" @dragover="dragOver" @click="dragClear" :ref="'room'+currentRoom.name">
-            <main class="deep-panel">
-                <div class="messages-wrap deep-scroll" v-sticky-scroll>
-                    <Message v-for="msg in currentRoom.messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content" :type="msg.type">
-
-                    </Message>
-                </div>
-            </main>
-            <header class="">
-                <span class="name">{{currentRoom.name}}</span>
-            </header>
-            <footer>
-                <img src="./assets/deep_ui/little_box1.png" class="bg-img left">
-                <img src="./assets/deep_ui/little_box2.png" class="bg-img right">
-                <div class="bg-img middle">
-                    <img src="./assets/deep_ui/little_box3.png" class="bg-img">
-                </div>
-                <div class="tools-wrap">
-                    <i @click="toggleEmotion" class="glyphicon glyphicon-heart-empty clickable" data-tool="emotion"></i>
-                    <i class="glyphicon glyphicon-picture clickable" data-tool="img">
-                        <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
-                    </i>
-                    <i @click="toggleInputCode" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
-                </div>
-                <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="send" @paste="paste" ref="$input">
-                </div>
-                <div @click="send" class="send-wrap clickable">
-                    <i class="glyphicon glyphicon-send" data-tool="img"></i>
-                </div>
-            </footer>
-            <div v-if="showEmotion" class="emotion-wrap deep-frame">
-                <div v-for="(emotion,index) in baiduEmotions" class="emotion" :style="{ background: 'url('+emotion.src+') no-repeat' }" @click="addEmotion(emotion.name)">                    
-                </div>
-            </div>
-            <div v-show="showCode" class="code-wrap deep-frame">
-                <textarea ref="code-area"></textarea>
-            </div>
-        </div>
+        <Room :roomName="currentRoom.name" :messages="currentRoom.messages" :send="send" :toggleInputCode="toggleInputCode"></Room>
         <div class="right-info-wrap">
             <div class="bulletin">
                 <header>Bulletin</header>
@@ -70,19 +33,33 @@
                 </ul>
             </div>
         </div>
+        <div v-if="showEmotion" class="emotion-wrap deep-frame">
+            <div v-for="(emotion,index) in baiduEmotions" class="emotion" :style="{ background: 'url('+emotion.src+') no-repeat' }" @click="addEmotion(emotion.name)">
+            </div>
+        </div>
+        <div v-show="showCode" class="code-wrap deep-frame">
+            <textarea ref="code-area"></textarea>
+            <div class="tool-bar">
+                <select v-model="codeLang">
+                    <option>javascript</option>
+                    <option>css</option>
+                    <option>html</option>
+                </select>
+                <button @click="sendCode()" class="send-code deep-btn green">Send</button>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
-    import Message from './components/Message';
-    import MessageSection from './components/MessageSection';
-    import StickScroll from './directives/stick-scroll';
-    const loadImage = require("blueimp-load-image");
     import $ from "jquery";
     import socket from "./io";
+    import Room from './components/Room';
 
     const CodeMirror = require('./codemirror/lib/codemirror.js');
     require('./codemirror/mode/javascript/javascript.js');
+    require('./codemirror/mode/css/css.js');
+    require('./codemirror/mode/htmlmixed/htmlmixed.js');
 
     require('./codemirror/lib/codemirror.css');
     require('./codemirror/theme/monokai.css');
@@ -214,6 +191,8 @@
                 rooms: [],
                 showEmotion: false,
                 showCode: false,
+                codeLang: "javascript",
+                editor: false,
                 baiduEmotions: [
                     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
                     '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
@@ -223,7 +202,28 @@
                 ],
             }
         },
+        watch: {
+            codeLang: function(v) {
+                this.editor.setOption("mode", v);
+
+            }
+        },
         methods: {
+            toggleInputCode(e) {
+                this.showCode = !this.showCode;
+                setTimeout(() => {
+                    if (!this.editor) {
+                        this.editor = CodeMirror.fromTextArea(this.$refs['code-area'], {
+                            lineNumbers: true,
+                            mode: "text/" + this.codeLang,
+                            matchBrackets: true,
+                            theme: "monokai"
+                        });
+                    }
+
+
+                });
+            },
             setDefaultRoom() {
 
                 if (this.$route.params.rooms) {
@@ -237,15 +237,14 @@
 
                 this.currentRoom = this.rooms[0];
             },
-            send() {
-                const content = this.inputText;
+            send(roomName, type, content) {
                 if (!content) {
                     return;
                 }
                 if (socket.context.logged) {
                     socket.send({
-                        room: this.currentRoom.name,
-                        type: "text",
+                        room: roomName,
+                        type,
                         content,
                     });
                 } else {
@@ -261,140 +260,14 @@
                 //                    content: this.inputText,
                 //                    avatar: "/static/img/avatar.gif",
                 //                });
-                this.$refs.$input.innerHTML = "";
-            },
-            input($event) {
-                this.inputText = this.$refs.$input.textContent;
-            },
-            paste(e) {
-                console.log(e);
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                const types = (e.clipboardData || e.originalEvent.clipboardData).types;
-
-                console.log(items, types, items.length, items[0])
-                const roomName = this.currentRoom && this.currentRoom.name;
-                if (!roomName) {
-                    return;
-                }
-                if (types.indexOf('Files') > -1) {
-                    for (let index = 0; index < items.length; index++) {
-                        const item = items[index];
-                        if (item.kind === 'file' && item.type.match(/^image/)) {
-                            const reader = new FileReader();
-                            const instance = this;
-                            reader.onloadend = function() {
-                                //                                const img = new Image();
-                                //                                img.src = this.result;
-                                socket.send({
-                                    room: roomName,
-                                    type: "image",
-                                    content: this.result
-                                });
-                                //                                console.log(img)
-                            };
-                            reader.readAsDataURL(item.getAsFile());
-                        }
-                    }
-                    e.preventDefault();
-                }
-            },
-            fileUpload(e) {
-                const roomName = this.currentRoom && this.currentRoom.name;
-                console.log("e2", e);
-                loadImage(
-                    e.target.files[0],
-                    function(canvas) {
-                        socket.send({
-                            room: roomName,
-                            type: "image",
-                            content: canvas.toDataURL()
-                        });
-                    }, {
-                        orientation: true,
-                        maxWidth: 200,
-                        maxHeight: 200
-                    } // Options
-                );
 
             },
-            drop(e) {
-                this.$refs['room' + this.currentRoom.name].classList.remove("dragging");
-                const roomName = this.currentRoom && this.currentRoom.name;
-                e.stopPropagation();
-                e.preventDefault();
-                console.log(e.dataTransfer)
-                    //                var imageUrl = e.dataTransfer.getData('Text'); // alert(imageUrl);
 
-                var items = e.dataTransfer.items;
-                for (let index = 0; index < items.length; index++) {
-                    const item = items[index];
-                    if (item.kind === 'file' && item.type.match(/^image/)) {
-                        const reader = new FileReader();
-                        const instance = this;
-                        reader.onloadend = function() {
-                            //                                const img = new Image();
-                            //                                img.src = this.result;
-                            socket.send({
-                                room: roomName,
-                                type: "image",
-                                content: this.result
-                            });
-                            //                                console.log(img)
-                        };
-                        reader.readAsDataURL(item.getAsFile());
-                    }
-                }
-            },
-            dragClear(e) {
-                this.$refs['room' + this.currentRoom.name].classList.remove("dragging");
-            },
-            dragEnter(e) {
-                this.$refs['room' + this.currentRoom.name].classList.add("dragging");
-                e.stopPropagation();
-                e.preventDefault();
-            },
-            dragExit(e) {
-                e.stopPropagation();
-                e.preventDefault();
-            },
-            dragLeave(e) {
-                e.stopPropagation();
-                e.preventDefault();
-            },
-            dragOver(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                //               e.stopPropagation(); // e.preventDefault();
-            },
-            addEmotion(name) {
-                this.$refs.$input.innerHTML += `#(${name})`;
-                this.inputText = this.$refs.$input.textContent;
-                this.showEmotion = false;
-            },
-            toggleEmotion(e) {
-                this.showEmotion = !this.showEmotion;
-            },
-            toggleInputCode(e) {
-
-                this.showCode = !this.showCode;
-                setTimeout(() => {
-                    var editor = CodeMirror.fromTextArea(this.$refs['code-area'], {
-                        lineNumbers: true,
-                        mode: "text/javascript",
-                        matchBrackets: true,
-                        theme: "monokai"
-                    });
-                }, 300);
-            }
         },
         components: {
-            Message,
-
-
-        },
-        directives: {
-            StickScroll
+            Room
         }
+
     }
 
 </script>
