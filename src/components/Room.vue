@@ -21,7 +21,7 @@
             <i class="glyphicon glyphicon-picture clickable" data-tool="img">
                 <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
             </i>
-            <i @click="toggleInputCode" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
+            <i @click="openInputCode()" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
         </div>
         <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="sendText" @paste="paste" ref="$input">
         </div>
@@ -161,7 +161,7 @@
         directives: {
             StickScroll
         },
-        props: ['messages', 'roomName', 'send', 'toggleInputCode']
+        props: ['messages', 'roomName', 'send', 'openInputCode']
     };
 
 </script>

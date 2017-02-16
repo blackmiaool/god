@@ -11,7 +11,7 @@
                 </li>
             </ul>
         </div>
-        <Room :roomName="currentRoom.name" :messages="currentRoom.messages" :send="send" :toggleInputCode="toggleInputCode"></Room>
+        <Room :roomName="currentRoom.name" :messages="currentRoom.messages" :send="send" :openInputCode="openInputCode"></Room>
         <div class="right-info-wrap">
             <div class="bulletin">
                 <header>Bulletin</header>
@@ -55,6 +55,7 @@
     import $ from "jquery";
     import socket from "./io";
     import Room from './components/Room';
+    import eventHub from './eventHub';
 
     const CodeMirror = require('./codemirror/lib/codemirror.js');
     require('./codemirror/mode/javascript/javascript.js');
@@ -85,6 +86,10 @@
                     targetRoom.members = members;
                 }
 
+            });
+            eventHub.$on("showCode", (code) => {
+                console.log("code", code);
+                this.openInputCode(code);
             });
             socket.on('message', ({
                 room: roomName,
@@ -193,6 +198,11 @@
                 showCode: false,
                 codeLang: "javascript",
                 editor: false,
+                editorConfig: {
+                    lineNumbers: true,
+                    matchBrackets: true,
+                    theme: "monokai"
+                },
                 baiduEmotions: [
                     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
                     '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
@@ -209,20 +219,29 @@
             }
         },
         methods: {
-            toggleInputCode(e) {
-                this.showCode = !this.showCode;
+            openInputCode(code) {
+                this.showCode = true;
                 setTimeout(() => {
-                    if (!this.editor) {
-                        this.editor = CodeMirror.fromTextArea(this.$refs['code-area'], {
-                            lineNumbers: true,
-                            mode: "text/" + this.codeLang,
-                            matchBrackets: true,
-                            theme: "monokai"
-                        });
+                    if (code) {
+                        this.codeLang = code.lang;
                     }
+                    if (!this.editor) {
 
+                        const config = JSON.parse(JSON.stringify(this.editorConfig));
+                        config.mode = "text" + this.codeLang;
+                        this.editor = CodeMirror.fromTextArea(
+                            this.$refs['code-area'], config);
+                        if (code) {
+                            console.log(code);
 
+                        }
+
+                    }
+                    this.editor.setValue(code.data);
                 });
+            },
+            closeInputCode() {
+                this.showCode = false;
             },
             setDefaultRoom() {
 
@@ -236,6 +255,13 @@
                 }
 
                 this.currentRoom = this.rooms[0];
+            },
+            sendCode() {
+                this.send(this.currentRoom.name, "code", {
+                    lang: this.codeLang,
+                    data: this.editor.getValue()
+                });
+                this.closeInputCode();
             },
             send(roomName, type, content) {
                 if (!content) {

@@ -10,9 +10,10 @@
             </div>
             <div class="content-wrap">
                 <div class="content">                    
-                    <MessageSection v-if="type==='text'" :data="section.data" :type="section.type" v-for="section in sections">
+                    <MessageSection v-if="type==='text'" :data="section.data" :type="section.type" v-for="section in sections" data-message-type="text">
                     </MessageSection>
-                    <img v-if="type==='image'" :src="content" class="message-image"/>
+                    <img v-if="type==='image'" :src="content" class="message-image" data-message-type="image"/>
+                    <CodePreview v-if="type==='code'" :data="content"  data-message-type="code"/>
                 </div>
             </div>
         </div>
@@ -20,6 +21,8 @@
 </template>
 
 <script>
+    import CodePreview from "./CodePreview";
+
     function tokenMatch(content, matches) {
         const tokens = [];
         matches.forEach(function(v) {
@@ -91,6 +94,9 @@
             }
 
         },
+        components: {
+            CodePreview
+        }
 
     }
 

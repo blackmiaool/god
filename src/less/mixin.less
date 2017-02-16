@@ -7,7 +7,6 @@
     user-select: none;
 }
 
-
 .clickable {
     .unselectable;
     >* {
@@ -16,10 +15,10 @@
     -webkit-tap-highlight-color: transparent;
     cursor: pointer;
 }
+
 img {
     .unselectable;
 }
-
 
 .caret {
     display: inline-block;
@@ -84,6 +83,10 @@ img {
     height: @size;
 }
 
+.rect(@size) {
+    .square(@size);
+}
+
 .common-square(@size) {
     width: @size;
     height: @size;
@@ -118,8 +121,7 @@ img {
     position: absolute;
     top: 50%;
     left: 50%;
-    .transform(translate(-50%,
-    -50%));
+    .transform(translate(-50%, -50%));
 }
 
 .vertical-center {
