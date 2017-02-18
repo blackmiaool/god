@@ -46,6 +46,8 @@
                     <option>html</option>
                 </select>
                 <button @click="sendCode()" class="send-code deep-btn green">Send</button>
+                <button @click="closeCode()" class="send-code deep-btn orange">Close</button>
+                
             </div>
         </div>
     </div>
@@ -75,6 +77,9 @@
     export default {
         name: 'Chat',
         created() {
+            eventHub.$on("toggleEmotion", (room) => {
+                this.toggleEmotion(room);
+            });
             socket.on('sync-members', ({
                 name,
                 members
@@ -237,7 +242,10 @@
                         }
 
                     }
-                    this.editor.setValue(code.data);
+                    if (code) {
+                        this.editor.setValue(code.data);
+                    }
+
                 });
             },
             closeInputCode() {
@@ -255,6 +263,9 @@
                 }
 
                 this.currentRoom = this.rooms[0];
+            },
+            closeCode() {
+                this.closeInputCode();
             },
             sendCode() {
                 this.send(this.currentRoom.name, "code", {
@@ -288,6 +299,24 @@
                 //                });
 
             },
+            toggleEmotion(targetRoom) {
+                this.showEmotion = !this.showEmotion;
+                if (this.showEmotion) {
+                    $(targetRoom.$refs.$input).attr("contenteditable", "false");
+                } else {
+                    $(this.emotionTargetRoom.$refs.$input).attr("contenteditable", "true");
+                }
+
+
+
+                this.emotionTargetRoom = targetRoom;
+
+            },
+            addEmotion(name) {
+                this.showEmotion = false;
+                $(this.emotionTargetRoom.$refs.$input).attr("contenteditable", "true");
+                this.emotionTargetRoom.addEmotion(name);
+            }
 
         },
         components: {

@@ -22,9 +22,9 @@
                 <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
             </i>
             <i @click="openInputCode()" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
-        </div>
-        <div class="input-wrap" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="sendText" @paste="paste" ref="$input">
-        </div>
+        </div>        
+        <div class="input-wrap deep-scroll" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="sendText" @paste="paste" ref="$input">
+        </div>        
         <div @click="sendText()" class="send-wrap clickable">
             <i class="glyphicon glyphicon-send" data-tool="img"></i>
         </div>
@@ -32,9 +32,11 @@
 </div>
 </template>
 <script>
+    import $ from "jquery";
     import Message from './Message';
     import MessageSection from './MessageSection';
     import StickScroll from '../directives/stick-scroll';
+    import eventHub from '../eventHub';
     const loadImage = require("blueimp-load-image");
 
     export default {
@@ -146,14 +148,24 @@
                 //               e.stopPropagation(); // e.preventDefault();
             },
             addEmotion(name) {
-                this.$refs.$input.innerHTML += `#(${name})`;
-                this.inputText = this.$refs.$input.textContent;
+                const input = this.$refs.$input;
+                const $input = $(input);
+                input.innerHTML += `#(${name})`;
+                this.inputText = input.textContent;
                 this.showEmotion = false;
-            },
-            toggleEmotion(e) {
-                this.showEmotion = !this.showEmotion;
-            },
 
+                $input.focus();
+                var strLength = input.innerHTML.length;
+                var range = document.createRange();
+                var sel = window.getSelection();
+                range.setStart(input.childNodes[0], strLength);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            },
+            toggleEmotion() {
+                eventHub.$emit("toggleEmotion", this);
+            },
         },
         components: {
             Message,
