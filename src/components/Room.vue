@@ -19,7 +19,7 @@
         <div class="tools-wrap">
             <i @click="toggleEmotion" class="glyphicon glyphicon-heart-empty clickable" data-tool="emotion"></i>
             <i class="glyphicon glyphicon-picture clickable" data-tool="img">
-                <input @change="fileUpload" type="file" accept="image/png,image/gif,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
+                <input @change="fileUpload" type="file" accept="image/png,image/jpeg,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
             </i>
             <i @click="openInputCode()" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
         </div>        
@@ -69,7 +69,7 @@
                     return;
                 }
                 const that = this;
-                console.log(1, types)
+                console.log(1, types, items, items[0], items[1])
                 if (types.indexOf('Files') > -1) {
                     console.log(2)
                     for (let index = 0; index < items.length; index++) {
@@ -90,6 +90,7 @@
             fileUpload(e) {
                 const roomName = this.roomName;
                 const that = this;
+                console.log(e);
                 loadImage(
                     e.target.files[0],
                     function(canvas) {

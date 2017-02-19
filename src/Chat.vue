@@ -42,6 +42,7 @@
             <div class="tool-bar">
                 <select v-model="codeLang">
                     <option>javascript</option>
+                    <option>go</option>
                     <option>css</option>
                     <option>html</option>
                 </select>
@@ -61,6 +62,7 @@
 
     const CodeMirror = require('./codemirror/lib/codemirror.js');
     require('./codemirror/mode/javascript/javascript.js');
+    require('./codemirror/mode/go/go.js');
     require('./codemirror/mode/css/css.js');
     require('./codemirror/mode/htmlmixed/htmlmixed.js');
 
@@ -233,7 +235,8 @@
                     if (!this.editor) {
 
                         const config = JSON.parse(JSON.stringify(this.editorConfig));
-                        config.mode = "text" + this.codeLang;
+                        config.mode = "text/" + this.codeLang;
+                        console.log(config.mode)
                         this.editor = CodeMirror.fromTextArea(
                             this.$refs['code-area'], config);
                         if (code) {
@@ -283,6 +286,8 @@
                         room: roomName,
                         type,
                         content,
+                    }, function(result) {
+                        console.log("r", result);
                     });
                 } else {
                     alert("Connection is broken");

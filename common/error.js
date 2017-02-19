@@ -38,7 +38,17 @@ const map = {
     },
     "13": {
         msg: "Not logged in",
-    }
+    },
+    "14": {
+        msg: "Invalid content"
+    },
+    "15": {
+        msg: "Message too long"
+    },
+    "16": {
+        msg: "Img src too long"
+    },
+
 }
 for (const i in map) {
     map[i].code = parseInt(i);

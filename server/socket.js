@@ -6,8 +6,11 @@ import {
     getError,
     successData
 } from "../common/error.js";
+const md5 = require('md5');
 const db = require('./db.js');
 const roomMap = {};
+const fs = require('fs');
+const config = require("../config.js");
 
 function getSyncData(socket) {
     return {
@@ -94,7 +97,7 @@ function init(io) {
             room: roomName,
             type,
             content
-        }) {
+        }, cb) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
             }
@@ -105,24 +108,57 @@ function init(io) {
 
                 }
             }
-            if (content.length > 2e5) {
+            if (content.length > 1e6) {
+                cb(errorMap[15]);
                 return;
             }
             if (type === "text" && content.length > 300) {
+                cb(errorMap[15]);
                 return;
+            }
+            if (!roomMap[roomName] || !roomMap[roomName][socket.context.name]) {
+                cb(errorMap[7]);
+                return;
+            }
+            if (type === "image") {
+                if (content.match(/^data:/)) {
+                    const suffix = (content.match(/^data:image\/(\w+)/) || [])[1];
+                    if (!suffix) {
+                        cb(errorMap[14]);
+                        return;
+                    }
+                    const md5Value = md5(content);
+                    const fileName = `${md5Value}.${suffix}`;
+                    content = content.replace(/^data:image\/\w+;base64,/, "");
+                    const buff = Buffer.from(content, 'base64');
+                    fs.writeFile('public/images/' + fileName, buff, function () {
+                        send({
+                            content: `//${config.domain}:${config.serverPort}/images/${fileName}`
+                        });
+                    });
+                    return;
+                } else if (content.length > 1e3) {
+                    cb(errorMap[16]);
+                    return;
+                }
+            }
+            send();
+
+            function send(extra) {
+                const initialMessage = {
+                    room: roomName,
+                    type,
+                    content,
+                    name: socket.context.name,
+                    avatar: socket.context.avatar,
+                    time: Date.now()
+                };
+                for (const i in extra) {
+                    initialMessage[i] = extra[i];
+                }
+                broadcaseMessage(roomName, initialMessage);
             }
 
-            if (!roomMap[roomName] || !roomMap[roomName][socket.context.name]) {
-                return;
-            }
-            broadcaseMessage(roomName, {
-                room: roomName,
-                type,
-                content,
-                name: socket.context.name,
-                avatar: socket.context.avatar,
-                time: Date.now()
-            });
         });
 
         socket.on('get-room', function ({

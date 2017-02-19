@@ -15,8 +15,8 @@ npm run build
 ```
 
 ## TODO
-1. code message type
-1. create room
-1. emotion support
 1. history keeping
 1. notification
+1. multi account
+1. ua detection
+1. show image in input 
