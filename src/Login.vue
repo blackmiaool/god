@@ -120,6 +120,11 @@
 
 
                 }
+                data.rooms.forEach(function(room) {
+                    room.messages.forEach(function(message) {
+                        message.time = (new Date(message.time)).format("hh:mm")
+                    });
+                });
                 this.$root.avatar = data.avatar;
                 socket.context.logged = true;
                 window.router.push({

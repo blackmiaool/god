@@ -26,6 +26,16 @@ db.serialize(function () {
         FOREIGN KEY (Admin) REFERENCES user(Name)
         );
     `, function (e) {});
+    db.run(`CREATE TABLE message (        
+        id INTEGER PRIMARY KEY,
+        Name VARCHAT(32),        
+        Room VARCHAT(32),   
+        Time DATETIME,
+        Type TEXT,
+        Content LONGTEXT,     
+        FOREIGN KEY (Name) REFERENCES user(Name)
+        );
+    `, function (e) {});
 
     db.run(`INSERT INTO room (Name,Bulletin,Avatar) VALUES ($name,$bulletin,$avatar);`, {
         $name: config.firstRoom.name,
@@ -36,8 +46,10 @@ db.serialize(function () {
     });
 
 
-    db.all(`SELECT * FROM user;
-    `, function (e, data) {});
+//    db.all(`SELECT * FROM message ORDER BY id DESC LIMIT 1;
+//            `, function (e, data) {
+//        console.log(e, data)
+//    });
 });
 //db.close();
 async function login($name, $password) {
@@ -64,6 +76,27 @@ async function login($name, $password) {
     });
     return result;
 }
+async function getRoomsHistory($room, $offset, $num) {
+    let promise = new Promise(function (resolve, reject) {
+        db.all(`SELECT Content as content,Time as time,Type as type,Name as name FROM message WHERE Room = $room ORDER BY id DESC LIMIT $offset,$num;
+                    `, {
+            $room,
+            $offset,
+            $num,
+        }, function (e, data) {
+            if (e) {
+                console.log(e);
+                reject(e);
+            } else {
+                resolve(data);
+            }
+
+        });
+
+    });
+
+    return await promise;
+}
 async function getRoomsInfo(rooms) {
     rooms = JSON.parse(JSON.stringify(rooms)) || [];
     let promise = new Promise(function (resolve) {
@@ -79,9 +112,16 @@ async function getRoomsInfo(rooms) {
                         console.log(e);
                         reject(e);
                     } else {
-                        result.messages = [];
-                        a[i] = result;
-                        resolve();
+                        getRoomsHistory("god", 0, 10).then(function (msgs) {
+                            msgs.forEach(function (msg) {
+                                msg.time = (new Date(msg.time)).getTime();
+                            });
+
+                            result.messages = msgs.reverse();
+                            a[i] = result;
+                            resolve();
+                        });
+
                     }
                 });
 
@@ -89,6 +129,7 @@ async function getRoomsInfo(rooms) {
         });
     });
     await promise;
+
     return rooms;
 }
 async function joinRoom($name, $roomName) {
@@ -229,11 +270,40 @@ async function register($name, $password, $avatar) {
     });
     return result;
 }
+async function saveMessage($name, $room, date, $type, $content) {
 
+    let result;
+    const $time = date.getFullYear() + '-' +
+        ('00' + (date.getMonth() + 1)).slice(-2) + '-' +
+        ('00' + date.getDate()).slice(-2) + ' ' +
+        ('00' + date.getHours()).slice(-2) + ':' +
+        ('00' + date.getMinutes()).slice(-2) + ':' +
+        ('00' + date.getSeconds()).slice(-2);
+    result = await new Promise(function (resolve, reject) {
+        db.serialize(function () {
+            db.run(`INSERT INTO message (Name,Room,Time,Type,Content) VALUES ($name,$room,$time,$type,$content);`, {
+                $name,
+                $room,
+                $time,
+                $type,
+                $content
+            }, function (e) {
+                if (e) {
+                    console.log(e);
+                    resolve(e);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    });
+    return result;
+}
 export {
     register,
     getRoomsInfo,
     login,
     createRoom,
-    joinRoom
+    joinRoom,
+    saveMessage,
 }

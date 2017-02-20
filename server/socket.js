@@ -145,7 +145,7 @@ function init(io) {
             send();
 
             function send(extra) {
-                const initialMessage = {
+                const message = {
                     room: roomName,
                     type,
                     content,
@@ -154,9 +154,11 @@ function init(io) {
                     time: Date.now()
                 };
                 for (const i in extra) {
-                    initialMessage[i] = extra[i];
+                    message[i] = extra[i];
                 }
-                broadcaseMessage(roomName, initialMessage);
+
+                db.saveMessage(message.name, roomName, new Date(), message.type, message.content);
+                broadcaseMessage(roomName, message);
             }
 
         });
@@ -236,7 +238,6 @@ function init(io) {
             }
             db.login(data.name, data.password).then(function (result) {
                 db.getRoomsInfo(JSON.parse(result.rooms)).then(function (rooms) {
-                    console.log(111, rooms)
 
                     if (socket.context.name) {
                         disconnectSocket(socket);
