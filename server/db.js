@@ -93,7 +93,6 @@ async function getAvatar($name) {
         db.get(`SELECT Avatar as avatar FROM user WHERE Name = $name`, {
             $name
         }, function (e, data) {
-            console.log("d", data);
             if (e) {
                 console.log(e);
                 reject(e);
@@ -118,25 +117,29 @@ async function getRoomsHistory($room, $offset, $num) {
                 console.log(e);
                 reject(e);
             } else {
-
-                resolve(data);
+                resolve(data || []);
             }
         });
     }).then(function (msgs) {
         const sum = msgs.length;
-        let promise = Promise.resolve()
-        msgs.forEach(function (msg, i) {
-            const p = new Promise(function (resolve) {
-                getAvatar(msg.name).then(function (avatar) {
-                    msg.avatar = avatar;
-                    resolve(msgs);
+        if (sum) {
+            let promise = Promise.resolve()
+            msgs.forEach(function (msg, i) {
+                const p = new Promise(function (resolve) {
+                    getAvatar(msg.name).then(function (avatar) {
+                        msg.avatar = avatar;
+                        resolve(msgs);
+                    });
+                });
+                promise = promise.then(function () {
+                    return p
                 });
             });
-            promise = promise.then(function () {
-                return p
-            });
-        });
-        return promise;
+            return promise;
+        } else {
+            return Promise.resolve([]);
+        }
+
     });
 
     return await promise;
@@ -154,8 +157,7 @@ async function getRoomsInfo(rooms) {
                         console.log(e);
                         reject(e);
                     } else {
-                        getRoomsHistory("god", 0, 10).then(function (msgs) {
-                            console.log("msgs", msgs);
+                        getRoomsHistory(room, 0, 10).then(function (msgs) {
                             msgs.forEach(function (msg) {
                                 msg.time = (new Date(msg.time)).getTime();
                             });
