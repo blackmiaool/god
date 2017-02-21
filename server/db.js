@@ -46,10 +46,10 @@ db.serialize(function () {
     });
 
 
-//    db.all(`SELECT * FROM message ORDER BY id DESC LIMIT 1;
-//            `, function (e, data) {
-//        console.log(e, data)
-//    });
+    //    db.all(`SELECT * FROM message ORDER BY id DESC LIMIT 1;
+    //            `, function (e, data) {
+    //        console.log(e, data)
+    //    });
 });
 //db.close();
 async function login($name, $password) {
@@ -76,6 +76,36 @@ async function login($name, $password) {
     });
     return result;
 }
+let avatarCache = {};
+
+async function getAvatar($name) {
+    const cache = avatarCache[$name];
+    if (cache) {
+        if (typeof cache === "object") //promise{
+            return cache;
+        else {
+            return await cache;
+        }
+    }
+
+
+    const promise = new Promise(function (resolve, reject) {
+        db.get(`SELECT Avatar as avatar FROM user WHERE Name = $name`, {
+            $name
+        }, function (e, data) {
+            console.log("d", data);
+            if (e) {
+                console.log(e);
+                reject(e);
+            } else {
+                avatarCache[$name] = data.avatar;
+                resolve(data.avatar);
+            }
+        });
+    });
+    avatarCache[$name] = promise;
+    return await promise;
+}
 async function getRoomsHistory($room, $offset, $num) {
     let promise = new Promise(function (resolve, reject) {
         db.all(`SELECT Content as content,Time as time,Type as type,Name as name FROM message WHERE Room = $room ORDER BY id DESC LIMIT $offset,$num;
@@ -88,20 +118,32 @@ async function getRoomsHistory($room, $offset, $num) {
                 console.log(e);
                 reject(e);
             } else {
+
                 resolve(data);
             }
-
         });
-
+    }).then(function (msgs) {
+        const sum = msgs.length;
+        let promise = Promise.resolve()
+        msgs.forEach(function (msg, i) {
+            const p = new Promise(function (resolve) {
+                getAvatar(msg.name).then(function (avatar) {
+                    msg.avatar = avatar;
+                    resolve(msgs);
+                });
+            });
+            promise = promise.then(function () {
+                return p
+            });
+        });
+        return promise;
     });
 
     return await promise;
 }
 async function getRoomsInfo(rooms) {
     rooms = JSON.parse(JSON.stringify(rooms)) || [];
-    let promise = new Promise(function (resolve) {
-        resolve();
-    });
+    let promise = Promise.resolve();
     rooms.forEach(function (room, i, a) {
         promise = promise.then(function () {
             return new Promise(function (resolve, reject) {
@@ -113,6 +155,7 @@ async function getRoomsInfo(rooms) {
                         reject(e);
                     } else {
                         getRoomsHistory("god", 0, 10).then(function (msgs) {
+                            console.log("msgs", msgs);
                             msgs.forEach(function (msg) {
                                 msg.time = (new Date(msg.time)).getTime();
                             });
