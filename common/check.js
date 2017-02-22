@@ -11,10 +11,10 @@ function registerCheck(mode, name, password, password2) {
         });
     }
 
-    if (encodeURIComponent(name).length > 32) {
+    if (name.length > 32) {
         return getError(9, {
             key: "name",
-            msg: `Username too long(exceeds ${encodeURIComponent(name).length - 32}) chars`
+            msg: `Username too long(exceeds ${name.length - 32}) chars`
         });
     }
     if (name.length < 2) {
