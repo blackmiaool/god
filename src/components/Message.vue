@@ -12,8 +12,9 @@
                 <div class="content">                    
                     <MessageSection v-if="type==='text'" :data="section.data" :type="section.type" v-for="section in sections" data-message-type="text">
                     </MessageSection>
-                    <img v-if="type==='image'" :src="content" class="message-image" data-message-type="image"/>
+                    <img @load="onload" v-if="type==='image'&&content" :src="content.data" class="message-image" data-message-type="image"/>
                     <CodePreview v-if="type==='code'" :data="content"  data-message-type="code"/>
+                    <FileLink v-if="type==='file'&&content" :data="content.data" :name="content.name"  data-message-type="file"/>
                 </div>
             </div>
         </div>
@@ -22,6 +23,8 @@
 
 <script>
     import CodePreview from "./CodePreview";
+    import FileLink from "./FileLink";
+    import eventHub from '../eventHub';
 
     function tokenMatch(content, matches) {
         const tokens = [];
@@ -83,6 +86,12 @@
 
             }
         },
+        methods: {
+            onload: function() {
+                console.log("onload");
+                eventHub.$emit("chat-room-image-onload");
+            }
+        },
         mounted() {},
         props: ["name", "time", "content", "avatar", "type"],
         computed: {
@@ -95,7 +104,8 @@
 
         },
         components: {
-            CodePreview
+            CodePreview,
+            FileLink
         }
 
     }

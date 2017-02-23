@@ -13,7 +13,6 @@
         props: ["data"],
         methods: {
             open: function() {
-                console.log(234234)
                 eventHub.$emit("showCode", this.data);
             }
         }

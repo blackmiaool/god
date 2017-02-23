@@ -6,6 +6,7 @@ import {
     getError,
     successData
 } from "../common/error.js";
+
 db.serialize(function () {
 
     db.run(`CREATE TABLE user (
@@ -97,15 +98,41 @@ async function getAvatar($name) {
                 console.log(e);
                 reject(e);
             } else {
-                avatarCache[$name] = data.avatar;
-                resolve(data.avatar);
+                if (data) {
+                    avatarCache[$name] = data.avatar;
+                    resolve(data.avatar);
+                } else {
+                    resolve("");
+                }
+
             }
         });
     });
     avatarCache[$name] = promise;
     return await promise;
 }
+async function getRoomsHistoryLength($room) {
+    let promise1 = new Promise(function (resolve, reject) {
+        db.all(`SELECT id FROM message WHERE Room = $room ORDER BY id DESC `, {
+            $room
+        }, function (e, data) {
+            if (e) {
+                console.log(e);
+                reject(e);
+            } else {
+                if (data) {
+                    resolve(data.length);
+                } else {
+                    resolve(0);
+                }
+
+            }
+        });
+    });
+    return await promise1;
+};
 async function getRoomsHistory($room, $offset, $num) {
+
     let promise = new Promise(function (resolve, reject) {
         db.all(`SELECT Content as content,Time as time,Type as type,Name as name FROM message WHERE Room = $room ORDER BY id DESC LIMIT $offset,$num;
                     `, {
@@ -117,6 +144,11 @@ async function getRoomsHistory($room, $offset, $num) {
                 console.log(e);
                 reject(e);
             } else {
+                data.forEach(function (v, i, a) {
+                    if (v.type === "image" || v.type === "code" || v.type === "file") {
+                        v.content = JSON.parse(v.content);
+                    }
+                });
                 resolve(data || []);
             }
         });
@@ -157,6 +189,16 @@ async function getRoomsInfo(rooms) {
                         console.log(e);
                         reject(e);
                     } else {
+                        let pLength = new Promise(function (resolve) {
+                            getRoomsHistoryLength(room).then(function (length) {
+                                if (length > 10) {
+                                    result.more = true;
+                                } else {
+                                    result.more = false;
+                                }
+                                resolve();
+                            });
+                        });
                         getRoomsHistory(room, 0, 10).then(function (msgs) {
                             msgs.forEach(function (msg) {
                                 msg.time = (new Date(msg.time)).getTime();
@@ -164,6 +206,10 @@ async function getRoomsInfo(rooms) {
 
                             result.messages = msgs.reverse();
                             a[i] = result;
+
+                        }).then(function () {
+                            return pLength;
+                        }).then(function () {
                             resolve();
                         });
 
@@ -296,6 +342,7 @@ async function createRoom($name, $roomName) {
 
 async function register($name, $password, $avatar) {
     let result;
+    avatarCache = {};
     result = await new Promise(function (resolve, reject) {
         db.serialize(function () {
             db.run(`INSERT INTO user (Name,Password,Rooms,Avatar) VALUES ($name,$password,$rooms,$avatar);`, {

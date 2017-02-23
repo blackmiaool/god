@@ -56,6 +56,9 @@
                 }
                 animate(0);
             }
+            el.addEventListener("load", function () {
+                console.log(234234)
+            });
 
             function scrollToBottom() {
                 if (binding.arg === 'animate') {

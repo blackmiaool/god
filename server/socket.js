@@ -101,6 +101,13 @@ function init(io) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
             }
+            let originalName;
+            if (typeof content === "object" && (type === "image" || type === "file")) {
+                console.log("aa")
+                originalName = content.name;
+                content = content.data;
+            }
+
             if (type === "image") {
                 if (content.match(/^data:/)) {
 
@@ -108,10 +115,18 @@ function init(io) {
 
                 }
             }
-            if (content.length > 1e6) {
-                cb(errorMap[15]);
-                return;
+            if (type === "file") {
+                if (content.length > 300e6) { //300M
+                    cb(errorMap[15]);
+                    return;
+                }
+            } else {
+                if (content.length > 1e6) {
+                    cb(errorMap[15]);
+                    return;
+                }
             }
+
             if (type === "text" && content.length > 300) {
                 cb(errorMap[15]);
                 return;
@@ -120,20 +135,30 @@ function init(io) {
                 cb(errorMap[7]);
                 return;
             }
-            if (type === "image") {
+            if (type === "image" || type === "file") {
                 if (content.match(/^data:/)) {
-                    const suffix = (content.match(/^data:image\/(\w+)/) || [])[1];
+                    let suffix = (originalName.match(/(\w+)$/) || [])[1];
+                    const dir = type === "image" ? "images/" : "files/"
                     if (!suffix) {
-                        cb(errorMap[14]);
-                        return;
+                        //                        cb(errorMap[14]);
+                        //                        return;
+                        suffix = "";
                     }
-                    const md5Value = md5(content);
-                    const fileName = `${md5Value}.${suffix}`;
-                    content = content.replace(/^data:image\/\w+;base64,/, "");
+                    let fileName;
+                    if (content.length < 5e6) {
+                        fileName = md5(content);
+                    } else {
+                        fileName = parseInt(Math.random() * 10000000);
+                    }
+                    const fileFullName = `${fileName}.${suffix}`;
+                    content = content.replace(/^data:\w*\/?[\w\-]*;base64,/, "");
                     const buff = Buffer.from(content, 'base64');
-                    fs.writeFile('public/images/' + fileName, buff, function () {
+                    fs.writeFile('public/' + dir + fileFullName, buff, function () {
                         send({
-                            content: `//${config.domain}:${config.serverPort}/images/${fileName}`
+                            content: {
+                                name: originalName,
+                                data: `//${config.domain}:${config.serverPort}/${dir}${fileFullName}`
+                            }
                         });
                     });
                     return;
@@ -153,12 +178,18 @@ function init(io) {
                     avatar: socket.context.avatar,
                     time: Date.now()
                 };
+
+
                 for (const i in extra) {
                     message[i] = extra[i];
                 }
+                broadcaseMessage(roomName, message);
+                if (typeof message.content === "object") {
+                    message.content = JSON.stringify(message.content);
+                }
 
                 db.saveMessage(message.name, roomName, new Date(), message.type, message.content);
-                broadcaseMessage(roomName, message);
+
             }
 
         });

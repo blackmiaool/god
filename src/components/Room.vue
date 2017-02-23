@@ -1,6 +1,6 @@
 <template>
 <div class="main-area-wrap image-drop-zone" @drop="drop" @dragenter="dragEnter" @dragleave="dragLeave" @dragexit="dragExit" @dragover="dragOver" @click="dragClear" :ref="'room'+roomName">
-    <main class="deep-panel">
+    <main class="deep-panel" @load="load">
         <div class="messages-wrap deep-scroll" v-sticky-scroll>
             <Message v-for="msg in messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content" :type="msg.type">
 
@@ -59,6 +59,9 @@
             clearInput() {
                 this.$refs.$input.innerHTML = "";
             },
+            load() {
+                console.log(a)
+            },
             paste(e) {
                 console.log(e);
                 const items = (e.clipboardData || e.originalEvent.clipboardData).items;
@@ -71,15 +74,15 @@
                 const that = this;
                 console.log(1, types, items, items[0], items[1])
                 if (types.indexOf('Files') > -1) {
-                    console.log(2)
                     for (let index = 0; index < items.length; index++) {
-                        console.log(3)
                         const item = items[index];
                         if (item.kind === 'file' && item.type.match(/^image/)) {
                             const reader = new FileReader();
                             const instance = this;
                             reader.onloadend = function() {
-                                that.send(roomName, "image", this.result);
+                                that.send(roomName, "image", {
+                                    data: this.result
+                                });
                             };
                             reader.readAsDataURL(item.getAsFile());
                         }
@@ -94,7 +97,9 @@
                 loadImage(
                     e.target.files[0],
                     function(canvas) {
-                        that.send(roomName, "image", canvas.toDataURL());
+                        that.send(roomName, "image", {
+                            data: canvas.toDataURL()
+                        });
                     }, {
                         orientation: true,
                         maxWidth: 200,
@@ -104,6 +109,7 @@
 
             },
             drop(e) {
+                const dropEvent = e;
                 this.$refs['room' + this.roomName].classList.remove("dragging");
                 const roomName = this.roomName;
                 e.stopPropagation();
@@ -112,18 +118,31 @@
                     //                var imageUrl = e.dataTransfer.getData('Text'); // alert(imageUrl);
                 const that = this;
                 var items = e.dataTransfer.items;
+
+                console.log(e.dataTransfer.files)
+
+                const files = e.dataTransfer.files;
                 for (let index = 0; index < items.length; index++) {
                     const item = items[index];
-                    if (item.kind === 'file' && item.type.match(/^image/)) {
+                    console.log(item);
+                    if (item.kind === 'file') {
+                        let kind;
+                        if (item.type.match(/^image/)) {
+                            kind = "image";
+                        } else {
+                            kind = "file";
+                        }
                         const reader = new FileReader();
                         const instance = this;
-                        reader.onloadend = function() {
-                            //                                const img = new Image();
-                            //                                img.src = this.result;
-                            that.send(roomName, "image", this.result);
-                            //                                console.log(img)
+                        reader.onloadend = function(e) {
+                            console.log(e, index, "i");
+                            that.send(roomName, kind, {
+                                name: files[index].name,
+                                data: this.result
+                            });
                         };
                         reader.readAsDataURL(item.getAsFile());
+
                     }
                 }
             },

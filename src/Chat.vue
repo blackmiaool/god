@@ -112,6 +112,7 @@
                 if (!targetRoom) {
                     return;
                 }
+
                 targetRoom.messages.push({
                     name,
                     time: (new Date(time)).format("hh:mm"),
