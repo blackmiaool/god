@@ -104,7 +104,7 @@ function init(io) {
             let originalName;
             if (typeof content === "object" && (type === "image" || type === "file")) {
                 console.log("aa")
-                originalName = content.name;
+                originalName = content.name || '';
                 content = content.data;
             }
 
@@ -138,28 +138,48 @@ function init(io) {
             if (type === "image" || type === "file") {
                 if (content.match(/^data:/)) {
                     let suffix = (originalName.match(/(\w+)$/) || [])[1];
-                    const dir = type === "image" ? "images/" : "files/"
+
                     if (!suffix) {
-                        //                        cb(errorMap[14]);
-                        //                        return;
                         suffix = "";
                     }
-                    let fileName;
+                    let fingerprint;
                     if (content.length < 5e6) {
-                        fileName = md5(content);
+                        fingerprint = md5(content);
                     } else {
-                        fileName = parseInt(Math.random() * 10000000);
+                        fingerprint = parseInt(Date.now());
                     }
-                    const fileFullName = `${fileName}.${suffix}`;
-                    content = content.replace(/^data:\w*\/?[\w\-]*;base64,/, "");
+
+                    content = content.replace(/^data:\w*\/?[\w\-+]*;base64,/, "");
                     const buff = Buffer.from(content, 'base64');
-                    fs.writeFile('public/' + dir + fileFullName, buff, function () {
-                        send({
-                            content: {
-                                name: originalName,
-                                data: `//${config.domain}:${config.serverPort}/${dir}${fileFullName}`
-                            }
-                        });
+
+                    let dir;
+                    let fileFullName;
+                    let localPath;
+                    if (type === 'image') {
+                        dir = "images/";
+                        fileFullName = `${fingerprint}.${suffix}`;
+
+                    } else {
+                        dir = "files/";
+                        fileFullName = `${Date.now()+'-'+originalName}`;
+                    }
+                    localPath = dir + fileFullName;
+                    fs.writeFile('public/' + localPath, buff, function () {
+                        if (type === "image") {
+                            send({
+                                content: {
+                                    data: `//${config.domain}:${config.serverPort}/${localPath}`
+                                }
+                            });
+                        } else {
+                            send({
+                                content: {
+                                    name: originalName,
+                                    data: `//${config.domain}:${config.serverPort}/getFile?name=${fileFullName}`
+                                }
+                            });
+                        }
+
                     });
                     return;
                 } else if (content.length > 1e3) {

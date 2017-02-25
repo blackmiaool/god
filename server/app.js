@@ -53,7 +53,13 @@ router.post('/avatar', async(ctx, next) => {
     });
 
 });
-
+router.get('/getFile', async(ctx, next) => {
+    console.log();
+    const shortName = ctx.request.query.name.replace(/^\d+-/, "");
+    ctx.body = fs.createReadStream(__dirname + '/public/files/' + ctx.request.query.name);
+    ctx.attachment(shortName);
+    //    console.log(1, this);
+});
 router.post('/login', async(ctx, next) => {
     const name = ctx.request.body.name;
     const password = ctx.request.body.password;
