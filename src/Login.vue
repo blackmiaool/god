@@ -68,6 +68,7 @@
         },
         computed: {},
         mounted() {
+            console.log("mounted");
             this.refreshAvatar();
             if (!autoLoginOnce) {
                 autoLoginOnce = true;
@@ -78,6 +79,14 @@
                 if (name) {
                     this.doLogin(name, password);
                 }
+
+                socket.on("connect", () => {
+                    this.doLogin(name, password);
+                });
+                socket.on("disconnect", () => {
+                    console.log("dis");
+                    this.$root.connected = false;
+                });
             }
         },
         methods: {
@@ -126,6 +135,7 @@
                     });
                 });
                 this.$root.avatar = data.avatar;
+                this.$root.connected = true;
                 socket.context.logged = true;
                 window.router.push({
                     name: 'Chat',

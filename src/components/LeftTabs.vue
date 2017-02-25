@@ -8,7 +8,7 @@
 
         <img src="../assets/deep_ui/btn_rect_orange4.png" class="bg-image bottom">
         <div class="avatar deep-avatar">
-            <img v-if="avatar" :src="avatar" alt="">
+            <img v-if="avatar" :src="avatar" alt="" :class="{active:connected}">
         </div>
         <div class="tabs">
             <router-link to="/chat" data-tab-name="groups" class="clickable"></router-link>
@@ -29,7 +29,8 @@
     export default {
         name: 'leftTabs',
         props: {
-            avatar: String
+            avatar: String,
+            connected: Boolean
         },
         data() {
             return {
@@ -46,4 +47,5 @@
 
         }
     }
+
 </script>

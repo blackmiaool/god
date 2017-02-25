@@ -67,7 +67,8 @@ window.router = new VueRouter({
 new Vue({
     router: window.router,
     data: {
-        avatar: ""
+        avatar: "",
+        connected: false,
     },
     mounted() {
 
