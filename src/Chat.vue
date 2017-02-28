@@ -23,11 +23,14 @@
                 </header>
                 <ul>
                     <li v-for="member in currentRoom.members">
-                        <span class="avatar">
-                        
+                        <span class="avatar">                        
                             <img  :src="member.avatar" alt="">
                         </span>
-                        <span class="state glyphicon glyphicon-phone"></span>
+                        <div class="state-wrap">
+                            <span v-for="client in member.clients" class="state">
+                                <ClientIcon :os="client.os" :title="client.os"/>
+                            </span>
+                        </div>                        
                         <span class="name">{{member.name}}</span>
                     </li>
                 </ul>
@@ -59,6 +62,7 @@
     import socket from "./io";
     import Room from './components/Room';
     import eventHub from './eventHub';
+    import ClientIcon from './components/ClientIcon';
 
     const CodeMirror = require('./codemirror/lib/codemirror.js');
     require('./codemirror/mode/javascript/javascript.js');
@@ -326,7 +330,8 @@
 
         },
         components: {
-            Room
+            Room,
+            ClientIcon
         }
 
     }

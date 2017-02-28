@@ -11,6 +11,7 @@ const db = require('./db.js');
 const roomMap = {};
 const fs = require('fs');
 const config = require("../config.js");
+const uaParser = require('ua-parser-js');
 
 function getSyncData(socket) {
     return {
@@ -18,14 +19,6 @@ function getSyncData(socket) {
         rooms: socket.context.rooms,
         name: socket.context.name + ""
     }
-}
-
-function syncUserInfo(socket) {
-    socket.emit("sync", {
-        avatar: socket.context.avatar || "/static/img/avatar.gif",
-        rooms: socket.context.rooms,
-        name: socket.context.name
-    });
 }
 
 function isEmptyObject(a) {
@@ -39,14 +32,37 @@ function syncRoom(socket, roomName) {
 
 }
 
+function getMembers(roomName) {
+    const ret = {};
+    const room = roomMap[roomName];
+
+    for (const name in room) {
+        const user = room[name];
+        ret[name] = {
+            avatar: user.avatar,
+            name,
+            clients: user.clients.map(function (v) {
+                return {
+                    os: v.os
+                };
+            })
+        };
+
+    }
+    return ret;
+}
+
 function syncMembers(roomName, exception) {
     for (const name in roomMap[roomName]) {
         const member = roomMap[roomName][name];
         if (exception && member.name !== exception) {
-            member.socket.emit("sync-members", {
-                name: roomName,
-                members: roomMap[roomName]
+            member.clients.forEach(function (client) {
+                client.socket.emit("sync-members", {
+                    name: roomName,
+                    members: getMembers(roomName)
+                });
             });
+
         }
     }
 }
@@ -54,40 +70,69 @@ function syncMembers(roomName, exception) {
 function broadcaseMessage(roomName, message) {
     for (const name in roomMap[roomName]) {
         const member = roomMap[roomName][name];
-        member.socket.send(message);
+        member.clients.forEach(function (client) {
+            client.socket.send(message);
+        });
     }
 }
-
-function disconnectSocket(socket) {
-    if (!socket.context.name) {
-        return;
+const userMap = {}
+class User {
+    constructor(name, avatar) {
+        Object.assign(this, {
+            avatar,
+            name,
+            clients: []
+        });
     }
-    console.log("222", socket.context.rooms)
-    socket.context.rooms.forEach(function (room) {
-        if (!roomMap[room.name]) {
-            return;
+    connectClient(socket, info) {
+        const item = {
+            socket
+        };
+        for (const i in info) {
+            Object.assign(item, info);
         }
-        delete roomMap[room.name][socket.context.name];
-        if (isEmptyObject(roomMap[room.name])) {
-            delete roomMap[room.name];
-        } else {
-            syncMembers(room.name, socket.context.name);
-        }
-    });
-}
-
-function joinRoom(socket, roomName) {
-    if (!roomMap[roomName]) {
-        roomMap[roomName] = {};
+        this.clients.push(item);
     }
-    roomMap[roomName][socket.context.name] = {
-        name: socket.context.name,
-        avatar: socket.context.avatar
-    };
-    Object.defineProperty(roomMap[roomName][socket.context.name], 'socket', {
-        enumerable: false,
-        value: socket
-    });
+    disconnectClient(socket) {
+        this.clients.some(function (item, i, arr) {
+            if (item.socket === socket) {
+                arr.splice(i, 1);
+                return true;
+            }
+        });
+        if (!this.clients.length) {
+            this.rooms.forEach((room) => {
+                if (!roomMap[room.name]) {
+                    return;
+                }
+                delete roomMap[room.name][this.name];
+                if (isEmptyObject(roomMap[room.name])) {
+                    delete roomMap[room.name];
+                } else {
+                    syncMembers(room.name, this.name);
+                }
+            });
+            delete userMap[this.name];
+        }
+    }
+    static addUser(name, avatar) {
+        if (!userMap[name]) {
+            userMap[name] = new User(name, avatar);
+        }
+        return userMap[name];
+    }
+    static getUser(name) {
+        return userMap[name];
+    }
+    static getAvatar(name) {
+        return userMap[name] && userMap[name].avatar;
+    }
+    joinRoom(roomName) {
+        if (!roomMap[roomName]) {
+            roomMap[roomName] = {};
+        }
+        roomMap[roomName][this.name] = this;
+    }
 }
 
 function init(io) {
@@ -225,7 +270,7 @@ function init(io) {
             }
             db.getRoomsInfo([roomName]).then(function (rooms) {
                 rooms.forEach(function (room) {
-                    room.members = roomMap[room.name];
+                    room.members = getMembers(room.name);
                 });
 
                 cb(successData(rooms[0]));
@@ -242,7 +287,7 @@ function init(io) {
                 cb(errorMap[3]);
             }
             db.createRoom(socket.context.name, roomName).then(function (result) {
-                joinRoom(socket, roomName);
+                user.joinRoom(roomName);
                 cb(errorMap[0]);
             }).catch(function (result) {
                 console.log("result", result);
@@ -264,7 +309,7 @@ function init(io) {
                 cb(errorMap[3]);
             }
             db.joinRoom(socket.context.name, roomName).then(function (result) {
-                joinRoom(socket, roomName);
+                user.joinRoom(roomName);
                 syncMembers(roomName, socket.context.name);
                 cb(errorMap[0]);
             }).catch(function (result) {
@@ -278,34 +323,51 @@ function init(io) {
             });
         });
         socket.on('disconnect', function () {
-            disconnectSocket(socket);
+            if (!socket.context.name) {
+                return;
+            }
+            user.disconnectClient(socket);
         });
+        let user;
         socket.on('login', (data, cb) => {
             const checkResult = registerCheck("server", data.name, data.password);
+            //            console.log(data.name, socket.handshake.headers['user-agent'])
+
+
             if (checkResult) {
                 checkResult.code = 1;
                 cb(checkResult);
                 return;
             }
             db.login(data.name, data.password).then(function (result) {
-                db.getRoomsInfo(JSON.parse(result.rooms)).then(function (rooms) {
 
-                    if (socket.context.name) {
-                        disconnectSocket(socket);
-                    }
+                if (socket.context.name) { //already logged in 
+                    const user = User.getUser(socket.context.name);
+                    user.disconnectClient(socket);
+                }
+
+                user = User.addUser(result.name, result.avatar);
+
+                const ua = uaParser(socket.handshake.headers['user-agent']);
+                user.connectClient(socket, {
+                    os: ua.os.name
+                });
+
+                db.getRoomsInfo(JSON.parse(result.rooms)).then(function (rooms) {
+                    user.rooms = rooms;
                     for (const i in result) {
                         socket.context[i] = result[i];
                     }
-                    socket.context.rooms = rooms;
-                    socket.context.rooms.forEach(function (room) {
-                        if (!roomMap[room.name]) {
-                            roomMap[room.name] = {};
-                        }
-                        joinRoom(socket, room.name);
+                    rooms.forEach(function (room) {
+                        user.joinRoom(room.name);
                         syncMembers(room.name, result.name);
-                        room.members = roomMap[room.name];
+                        room.members = getMembers(room.name);
                     });
-                    cb(successData(getSyncData(socket)));
+                    cb(successData({
+                        name: user.name,
+                        avatar: user.avatar,
+                        rooms
+                    }));
                 });
                 //                result.rooms = db.getRoomsInfo(result.rooms);
 

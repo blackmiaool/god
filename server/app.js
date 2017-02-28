@@ -107,10 +107,11 @@ router.post('/register', async(ctx, next) => {
         const buf = Buffer.from(avatar.slice(22), 'base64');
         const avatarSrc = "//" + config.domain + `:${config.serverPort}/avatar/${name}.png`; //TODO must use config file to determine domain
         console.log(avatarSrc, "avatarSrc");
-        fs.writeFileSync(`public/avatar/${name}.png`, buf);
+
 
         const result = await db.register(name, password, avatarSrc);
         if (!result) {
+            fs.writeFileSync(`public/avatar/${name}.png`, buf);
             ctx.body = {
                 code: 0,
                 msg: "ok",
