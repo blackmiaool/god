@@ -20,13 +20,12 @@
         'Linux': require(`../assets/Ubuntu.svg`),
         'iOS': require(`../assets/iPhone.svg`),
     }
-    console.log(osMap)
 
     export default {
         name: "CodePreview",
         props: ["os"],
         mounted: function() {
-            console.log(this.os)
+
         },
         data: function() {
             return {

@@ -79,8 +79,12 @@
                 if (name) {
                     this.doLogin(name, password);
                 }
-
+                let first = true;
                 socket.on("connect", () => {
+                    if (first) {
+                        first = false;
+                        return;
+                    }
                     this.doLogin(name, password);
                 });
                 socket.on("disconnect", () => {

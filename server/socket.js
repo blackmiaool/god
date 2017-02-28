@@ -55,15 +55,15 @@ function getMembers(roomName) {
 function syncMembers(roomName, exception) {
     for (const name in roomMap[roomName]) {
         const member = roomMap[roomName][name];
-        if (exception && member.name !== exception) {
-            member.clients.forEach(function (client) {
-                client.socket.emit("sync-members", {
-                    name: roomName,
-                    members: getMembers(roomName)
-                });
-            });
 
-        }
+        member.clients.forEach(function (client) {
+            client.socket.emit("sync-members", {
+                name: roomName,
+                members: getMembers(roomName)
+            });
+        });
+
+
     }
 }
 
@@ -109,10 +109,16 @@ class User {
                 if (isEmptyObject(roomMap[room.name])) {
                     delete roomMap[room.name];
                 } else {
-                    syncMembers(room.name, this.name);
+                    syncMembers(room.name);
                 }
             });
             delete userMap[this.name];
+        } else {
+            this.rooms.forEach((room) => {
+
+                syncMembers(room.name);
+
+            });
         }
     }
     static addUser(name, avatar) {
@@ -310,7 +316,7 @@ function init(io) {
             }
             db.joinRoom(socket.context.name, roomName).then(function (result) {
                 user.joinRoom(roomName);
-                syncMembers(roomName, socket.context.name);
+                syncMembers(roomName);
                 cb(errorMap[0]);
             }).catch(function (result) {
                 console.log("result", result);
@@ -360,7 +366,8 @@ function init(io) {
                     }
                     rooms.forEach(function (room) {
                         user.joinRoom(room.name);
-                        syncMembers(room.name, result.name);
+                        console.log(room.name);
+                        syncMembers(room.name);
                         room.members = getMembers(room.name);
                     });
                     cb(successData({
