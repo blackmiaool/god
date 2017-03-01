@@ -40,14 +40,8 @@
     import Vue from 'vue';
     import socket from "./io";
     const config = require("../config.js");
+    import eventHub from './eventHub';
 
-    socket.on("sync", function({
-        avatar,
-        rooms,
-        name,
-    }) {
-
-    });
     let autoLoginOnce = false;
     export default {
         name: 'app',
@@ -68,7 +62,6 @@
         },
         computed: {},
         mounted() {
-            console.log("mounted");
             this.refreshAvatar();
             if (!autoLoginOnce) {
                 autoLoginOnce = true;
@@ -184,11 +177,6 @@
                 } else {
                     this.doLogin();
                 }
-
-
-
-
-
             }
         },
         components: {
