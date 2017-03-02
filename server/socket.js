@@ -188,8 +188,8 @@ function init(io) {
             }
             if (type === "image" || type === "file") {
                 if (content.match(/^data:/)) {
-                    let suffix = (originalName.match(/(\w+)$/) || [])[1];
-
+                    let suffix = (originalName.match(/(\w+)$/) || content.match(/^data:image\/(\w+)/) || [])[1];
+                    console.log(suffix, "suffix");
                     if (!suffix) {
                         suffix = "";
                     }
@@ -398,7 +398,7 @@ function init(io) {
 
     io.on('join', (ctx, data) => {
         console.log('join event fired', data)
-    })
+    });
     io.on('simple', function (ctx, data) {
         console.log("sim", arguments);
     });

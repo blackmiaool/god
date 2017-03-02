@@ -193,7 +193,7 @@
         },
         mounted() {
             eventHub.$on("chat-room-image-onload", () => {
-                console.log(123)
+
             });
             this.setDefaultRoom();
 
