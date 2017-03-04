@@ -42,7 +42,7 @@
     const config = require("../config.js");
     import eventHub from './eventHub';
 
-    let autoLoginOnce = false;
+    let cacheLoginInfo;
     export default {
         name: 'app',
         mounted() {
@@ -63,28 +63,23 @@
         computed: {},
         mounted() {
             this.refreshAvatar();
-            if (!autoLoginOnce) {
-                autoLoginOnce = true;
-                const {
-                    name,
-                    password
-                } = JSON.parse(localStorage.getItem("god-account")) || {};
-                if (name) {
+
+            const {
+                name,
+                password
+            } = JSON.parse(localStorage.getItem("god-account")) || {};
+
+            socket.on("connect", () => {
+                if (cacheLoginInfo) {
+                    this.doLogin(cacheLoginInfo.name, cacheLoginInfo.password);
+                } else if (name) {
                     this.doLogin(name, password);
                 }
-                let first = true;
-                socket.on("connect", () => {
-                    if (first) {
-                        first = false;
-                        return;
-                    }
-                    this.doLogin(name, password);
-                });
-                socket.on("disconnect", () => {
-                    console.log("dis");
-                    this.$root.connected = false;
-                });
-            }
+            });
+            socket.on("disconnect", () => {
+                this.$root.connected = false;
+            });
+
         },
         methods: {
             refreshAvatar() {
@@ -103,11 +98,17 @@
                 }, (result) => {
 
                     if (!result.code) {
-                        if (!name) {
-                            localStorage.setItem("god-account", JSON.stringify({
+                        if (!name) { //login with input info
+                            cacheLoginInfo = {
                                 name: this.name,
                                 password: md5(this.password)
-                            }));
+                            };
+                            if (this.remember) {
+                                localStorage.setItem("god-account", JSON.stringify({
+                                    name: this.name,
+                                    password: md5(this.password)
+                                }));
+                            }
                         }
                         this.onSuccess(result.data);
                     } else if (result.key) {
@@ -122,10 +123,7 @@
                 });
             },
             onSuccess(data) {
-                if (this.remember) {
 
-
-                }
                 data.rooms.forEach(function(room) {
                     room.messages.forEach(function(message) {
                         message.time = (new Date(message.time)).format("hh:mm")
@@ -138,7 +136,6 @@
                     name: 'Chat',
                     params: data
                 });
-                //                    window.router.push("chat");
             },
             send() {
 
