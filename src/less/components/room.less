@@ -2,7 +2,7 @@
     filter: blur(3px);
 }
 
-header {
+>header {
     .deep-header(80px);
     margin-top: 24px;
     display: flex;
@@ -16,7 +16,7 @@ header {
     .name {}
 }
 
-main {
+>main {
     .abs-fill;
     top: 28px;
     padding-left: 10px;
@@ -36,9 +36,14 @@ main {
             max-height: 150px;
         }
     }
+    .more {
+        text-align: center;
+        background-color: black;
+        margin-bottom: 10px;
+    }
 }
 
-footer {
+>footer {
     position: absolute;
     left: 6px;
     right: 6px;
@@ -65,12 +70,13 @@ footer {
         }
     }
     .tools-wrap {
-        margin-left: 9px;
+        margin-left: 12px;
         [data-tool] {
             overflow: hidden;
             display: inline-block;
             margin: 0 5px;
             font-size: 22px;
+            position: relative;
         }
     }
     .input-wrap {
@@ -81,7 +87,7 @@ footer {
         align-items: center;
         background-color: #151110;
         margin-right: 4px;
-        margin-left: 5px;
+        margin-left: 2px;
         outline: none;
         border: none;
         padding: 6px 0px;

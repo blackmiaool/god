@@ -283,6 +283,23 @@ function init(io) {
             });
         });
 
+        socket.on('get-messages', function ({
+            name,
+            id,
+            cnt
+        }, cb) {
+            if (!socket.context.name) {
+                cb(errorMap[13]);
+            }
+            db.getRoomsHistory(name, id, cnt).then(function (msgs) {
+                msgs.forEach(function (msg) {
+                    msg.time = (new Date(msg.time)).getTime();
+                });
+
+                cb(successData(msgs.reverse()));
+            });
+        });
+
         socket.on('create-room', function ({
             name: roomName,
         }, cb) {

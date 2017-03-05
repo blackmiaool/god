@@ -2,6 +2,7 @@
 <div class="main-area-wrap image-drop-zone" @drop="drop" @dragenter="dragEnter" @dragleave="dragLeave" @dragexit="dragExit" @dragover="dragOver" @click="dragClear" :ref="'room'+roomName">
     <main class="deep-panel" @load="load">
         <div class="messages-wrap deep-scroll" v-sticky-scroll>
+            <div v-if="messages&&messages.length>9" class="more clickable" @click="getMoreHistory()"><i class="fa fa-arrow-up"></i>&nbsp;查看更多历史</div>
             <Message v-for="msg in messages" :avatar="msg.avatar" :name="msg.name" :time="msg.time" :content="msg.content" :type="msg.type">
 
             </Message>
@@ -17,16 +18,16 @@
             <img src="../assets/deep_ui/little_box3.png" class="bg-img">
         </div>
         <div class="tools-wrap">
-            <i @click="toggleEmotion" class="glyphicon glyphicon-heart-empty clickable" data-tool="emotion"></i>
-            <i class="glyphicon glyphicon-picture clickable" data-tool="img">
+            <i @click="toggleEmotion" class="fa fa-meh-o clickable" data-tool="emotion"></i>
+            <i class="fa fa-picture-o clickable " data-tool="img">
                 <input @change="fileUpload" type="file" accept="image/png,image/jpeg,image/gif" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: 0; z-index: 8;">
             </i>
-            <i @click="openInputCode()" class="glyphicon glyphicon-edit clickable" data-tool="code"></i>
+            <i @click="openInputCode()" class="fa fa-code clickable" data-tool="code"></i>
         </div>        
         <div class="input-wrap deep-scroll" @keypress="input" @keyup="input" contenteditable="" @keypress.enter.prevent="sendText" @paste="paste" ref="$input">
         </div>        
         <div @click="sendText()" class="send-wrap clickable">
-            <i class="glyphicon glyphicon-send" data-tool="img"></i>
+            <i class="fa fa-send" data-tool="img"></i>
         </div>
     </footer>    
 </div>
@@ -41,10 +42,14 @@
 
     export default {
         name: 'Room',
-        created() {
+        created() {},
+        computed: {
 
         },
         methods: {
+            getMoreHistory() {
+                this.loadMessage(this.roomName, this.messages[0].id, 10);
+            },
             sendText() {
                 this.send(this.roomName, 'text', this.inputText);
                 this.clearInput();
@@ -193,7 +198,7 @@
         directives: {
             StickScroll
         },
-        props: ['messages', 'roomName', 'send', 'openInputCode']
+        props: ['messages', 'roomName', 'send', 'openInputCode', 'loadMessage']
     };
 
 </script>

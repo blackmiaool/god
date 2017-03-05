@@ -131,13 +131,13 @@ async function getRoomsHistoryLength($room) {
     });
     return await promise1;
 };
-async function getRoomsHistory($room, $offset, $num) {
+async function getRoomsHistory($room, $id = Infinity, $num) {
 
     let promise = new Promise(function (resolve, reject) {
-        db.all(`SELECT Content as content,Time as time,Type as type,Name as name FROM message WHERE Room = $room ORDER BY id DESC LIMIT $offset,$num;
+        db.all(`SELECT Content as content,Time as time,Type as type,Name as name,id FROM message WHERE Room = $room And id < $id ORDER BY id DESC LIMIT 0,$num;
                     `, {
             $room,
-            $offset,
+            $id,
             $num,
         }, function (e, data) {
             if (e) {
@@ -189,17 +189,7 @@ async function getRoomsInfo(rooms) {
                         console.log(e);
                         reject(e);
                     } else {
-                        let pLength = new Promise(function (resolve) {
-                            getRoomsHistoryLength(room).then(function (length) {
-                                if (length > 10) {
-                                    result.more = true;
-                                } else {
-                                    result.more = false;
-                                }
-                                resolve();
-                            });
-                        });
-                        getRoomsHistory(room, 0, 10).then(function (msgs) {
+                        getRoomsHistory(room, undefined, 10).then(function (msgs) {
                             msgs.forEach(function (msg) {
                                 msg.time = (new Date(msg.time)).getTime();
                             });
@@ -207,8 +197,6 @@ async function getRoomsInfo(rooms) {
                             result.messages = msgs.reverse();
                             a[i] = result;
 
-                        }).then(function () {
-                            return pLength;
                         }).then(function () {
                             resolve();
                         });
@@ -398,4 +386,5 @@ export {
     createRoom,
     joinRoom,
     saveMessage,
+    getRoomsHistory
 }

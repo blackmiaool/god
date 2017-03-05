@@ -63,7 +63,9 @@ window.router = new VueRouter({
 });
 
 //Vue.component('lefttabs', LeftTabs);
-
+Vue.filter('messageDate', function (value) {
+    return (new Date(value).format('hh:mm'));
+});
 new Vue({
     router: window.router,
     data: {

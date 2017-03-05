@@ -123,12 +123,6 @@
                 });
             },
             onSuccess(data) {
-
-                data.rooms.forEach(function(room) {
-                    room.messages.forEach(function(message) {
-                        message.time = (new Date(message.time)).format("hh:mm")
-                    });
-                });
                 this.$root.avatar = data.avatar;
                 this.$root.connected = true;
                 socket.context.logged = true;

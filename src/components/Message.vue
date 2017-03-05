@@ -6,7 +6,7 @@
         </div>
         <div class="message">
             <div class="title">
-                {{name}} {{time}}
+                {{name}} {{time|messageDate}}
             </div>
             <div class="content-wrap">
                 <div class="content">                    
@@ -88,7 +88,6 @@
         },
         methods: {
             onload: function() {
-                console.log("onload");
                 eventHub.$emit("chat-room-image-onload");
             }
         },

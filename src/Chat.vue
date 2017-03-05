@@ -11,7 +11,7 @@
                 </li>
             </ul>
         </div>
-        <Room :roomName="currentRoom.name" :messages="currentRoom.messages" :send="send" :openInputCode="openInputCode"></Room>
+        <Room :roomName="currentRoom.name" :messages="currentRoom.messages" :send="send" :openInputCode="openInputCode" :loadMessage="loadMessage"></Room>
         <div class="right-info-wrap">
             <div class="bulletin">
                 <header>Bulletin</header>
@@ -119,7 +119,7 @@
 
                 targetRoom.messages.push({
                     name,
-                    time: (new Date(time)).format("hh:mm"),
+                    time,
                     content,
                     avatar: avatar,
                     type
@@ -148,7 +148,7 @@
                 if (targetRoom) {
                     targetRoom.messages.push({
                         name: data.name,
-                        time: (new Date()).format("hh:mm"),
+                        time: Date.now(),
                         content: data.content,
                         avatar: data.avatar,
                         source: data.source,
@@ -328,7 +328,26 @@
                 this.showEmotion = false;
                 $(this.emotionTargetRoom.$refs.$input).attr("contenteditable", "true");
                 this.emotionTargetRoom.addEmotion(name);
-            }
+            },
+            loadMessage(name, id, cnt) {
+                socket.emit("get-messages", {
+                    name,
+                    id,
+                    cnt
+                }, (result) => {
+                    if (result.code) {
+                        console.warn(result.msg)
+                    } else {
+                        console.log(result);
+                        const targetRoom = this.rooms.filter(function(room) {
+                            return room.name === name;
+                        })[0];
+                        if (targetRoom) {
+                            targetRoom.messages = result.data.concat(targetRoom.messages);
+                        }
+                    }
+                });
+            },
 
         },
         components: {
