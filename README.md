@@ -15,7 +15,6 @@ npm run build
 ```
 
 ## TODO
-1. history keeping
 1. notification
 1. multi account
 1. ua detection
