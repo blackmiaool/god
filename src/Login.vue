@@ -133,6 +133,7 @@
             },
             onSuccess(data) {
                 this.$root.avatar = data.avatar;
+                this.$root.userName = data.name;
                 this.$root.connected = true;
                 socket.context.logged = true;
                 if (firstPage === 'settings') {

@@ -3,7 +3,8 @@
         "/.git/",
         "/dist/",
         "/dist_third/",
-        "/node_modules/"
+        "/node_modules/",
+        "server/db"
     ],
     "bb.beautify.onSave": true
 }

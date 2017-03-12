@@ -1,7 +1,7 @@
 <template>
     <div class="top-page-wrap chat-page">       
         <div class="list-wrap">
-            <header>已加入列表</header>
+            <header>Room List</header>
             <ul class="deep-scroll">
                 <li v-for="room in rooms" class="clickable" @click="currentRoom=room" :class="{selected:currentRoom===room}">
                     <span class="avatar deep-avatar">
@@ -64,6 +64,8 @@
     import eventHub from './eventHub';
     import ClientIcon from './components/ClientIcon';
 
+    import settings from './settings';
+
     const CodeMirror = require('./codemirror/lib/codemirror.js');
     require('./codemirror/mode/javascript/javascript.js');
     require('./codemirror/mode/go/go.js');
@@ -116,7 +118,14 @@
                 if (!targetRoom) {
                     return;
                 }
-
+                if (settings.config.showNotification) {
+                    if (name !== this.$root.userName) {
+                        if (typeof content !== "string") {
+                            content = String(content);
+                        }
+                        new Notification(content);
+                    }
+                }
                 targetRoom.messages.push({
                     name,
                     time,
@@ -230,7 +239,6 @@
         watch: {
             codeLang: function(v) {
                 this.editor.setOption("mode", v);
-
             }
         },
         methods: {
