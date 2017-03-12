@@ -28,6 +28,7 @@ body {
 }
 
 .top-page-wrap {
+    overflow: hidden;
     margin-left: 60px;
     height: 100%;
     position: relative;
@@ -53,5 +54,10 @@ body {
 }
 
 .left-tabs-wrap {
+    z-index: 1;
     @import "left-tabs-wrap.less";
+}
+
+.setting-tab-header {
+    @import "components/settingTabHeader.less";
 }

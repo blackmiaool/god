@@ -9,6 +9,7 @@ import LeftTabs from './components/LeftTabs';
 import VueRouter from 'vue-router';
 
 require("./less/style.less");
+
 /* eslint-disable no-new */
 Date.prototype.format = function (format) {
     const zeros = ['', '0', '00', '000'];
@@ -47,7 +48,8 @@ const routes = [
     },
     {
         path: '/settings',
-        component: Settings
+        component: Settings,
+        name: "Settings"
     },
     {
         path: '/chat',

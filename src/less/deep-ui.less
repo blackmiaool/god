@@ -8,19 +8,26 @@
 }
 
 .deep-header(@height: 100px) {
-    background-image: url("@{path}/red_header.png");
+    background-image: url("@{path}/deep_header.png");
     background-repeat: no-repeat;
     background-size: contain;
-    height: @height;
-    width: @height *632px/176px;
+    background-position: center center;
+    //    height: @height;
+    padding-top: 176/632*100%;
     margin: auto;
     text-align: center;
-    .transform(translateY(-35%));
-    background-position-y: @height * 0.04;
+    pointer-events: none;
+    .transform(translateY(-34%));
     >.deep-header-text {
         color: wheat;
         font-size: 22px;
         line-height: @height *1.8/2;
+    }
+    >.deep-text {
+        height: 30%;
+        .abs-fill;
+        top: -10%;
+        margin: auto;
     }
 }
 

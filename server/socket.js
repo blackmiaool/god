@@ -94,6 +94,9 @@ class User {
         this.clients.push(item);
     }
     disconnectClient(socket) {
+        socket.emit("logged-out", function () {
+
+        });
         this.clients.some(function (item, i, arr) {
             if (item.socket === socket) {
                 arr.splice(i, 1);
@@ -138,6 +141,7 @@ class User {
             roomMap[roomName] = {};
         }
         roomMap[roomName][this.name] = this;
+        syncMembers(roomName);
     }
 }
 
@@ -151,6 +155,7 @@ function init(io) {
         }, cb) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
+                return;
             }
             let originalName;
             if (typeof content === "object" && (type === "image" || type === "file")) {
@@ -270,9 +275,11 @@ function init(io) {
         }, cb) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
+                return;
             }
             if (roomName.length > 10) {
                 cb(errorMap[3]);
+                return;
             }
             db.getRoomsInfo([roomName]).then(function (rooms) {
                 rooms.forEach(function (room) {
@@ -290,6 +297,7 @@ function init(io) {
         }, cb) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
+                return;
             }
             db.getRoomsHistory(name, id, cnt).then(function (msgs) {
                 msgs.forEach(function (msg) {
@@ -305,9 +313,11 @@ function init(io) {
         }, cb) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
+                return;
             }
             if (roomName.length > 10) {
                 cb(errorMap[3]);
+                return;
             }
             db.createRoom(socket.context.name, roomName).then(function (result) {
                 user.joinRoom(roomName);
@@ -327,16 +337,16 @@ function init(io) {
         }, cb) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
+                return;
             }
             if (roomName.length > 10) {
                 cb(errorMap[3]);
+                return;
             }
             db.joinRoom(socket.context.name, roomName).then(function (result) {
                 user.joinRoom(roomName);
-                syncMembers(roomName);
                 cb(errorMap[0]);
             }).catch(function (result) {
-                console.log("result", result);
                 if (typeof result.code === "number") {
                     cb(result);
                 } else {
@@ -352,6 +362,20 @@ function init(io) {
             user.disconnectClient(socket);
         });
         let user;
+        socket.on('get-rooms', (a, cb) => {
+            if (!socket.context.name) {
+                return;
+            }
+            db.getRoomsInfo(user.rooms.map(function (room) {
+                return room.name
+            })).then(function (rooms) {
+                rooms.forEach(function (room) {
+                    room.members = getMembers(room.name);
+                });
+                cb(successData(rooms));
+            });
+
+        });
         socket.on('login', (data, cb) => {
             const checkResult = registerCheck("server", data.name, data.password);
             //            console.log(data.name, socket.handshake.headers['user-agent'])
@@ -383,19 +407,12 @@ function init(io) {
                     }
                     rooms.forEach(function (room) {
                         user.joinRoom(room.name);
-                        console.log(room.name);
-                        syncMembers(room.name);
-                        room.members = getMembers(room.name);
                     });
                     cb(successData({
                         name: user.name,
                         avatar: user.avatar,
-                        rooms
                     }));
                 });
-                //                result.rooms = db.getRoomsInfo(result.rooms);
-
-
 
             }).catch(function (result) {
 

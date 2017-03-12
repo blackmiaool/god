@@ -20,9 +20,12 @@
                     <span>Remember me</span>
                     </label>
 
-            <header>
-                <img v-if="mode==='login'" src="./assets/login_header.png" alt="">
-                <img v-if="mode==='register'" src="./assets/register_header.png" alt="">
+            <header  > 
+              <div class="deep-header">
+                   <img v-if="mode==='login'" class="deep-text" src="./assets/header_text/login.png" alt="">
+                   <img v-if="mode==='register'" class="deep-text" src="./assets/header_text/register.png" alt="">
+              </div>           
+              
             </header>
             <button @click="send" class="accept deep-icon" data-icon="accept"></button>
             <button v-if="mode==='login'" class="go-register clickable" @click="setMode('register')">or Register</button>
@@ -41,6 +44,12 @@
     import socket from "./io";
     const config = require("../config.js");
     import eventHub from './eventHub';
+
+    const href = window.location.href;
+    let firstPage = href.match(/\/#\/(\w+)/);
+    if (firstPage) {
+        firstPage = firstPage[1];
+    }
 
     let cacheLoginInfo;
     export default {
@@ -126,10 +135,18 @@
                 this.$root.avatar = data.avatar;
                 this.$root.connected = true;
                 socket.context.logged = true;
-                window.router.push({
-                    name: 'Chat',
-                    params: data
-                });
+                if (firstPage === 'settings') {
+                    window.router.push({
+                        name: 'Settings',
+                        params: {}
+                    });
+                } else {
+                    window.router.push({
+                        name: 'Chat',
+                        params: data
+                    });
+                }
+
             },
             send() {
 

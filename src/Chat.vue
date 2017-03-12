@@ -208,6 +208,7 @@
             return {
                 currentRoom: {},
                 rooms: [],
+                roomsInitialized: false,
                 showEmotion: false,
                 showCode: false,
                 codeLang: "javascript",
@@ -263,12 +264,30 @@
             },
             setDefaultRoom() {
 
-                if (this.$route.params.rooms) {
-                    this.rooms = this.$route.params.rooms;
+                //                if (this.$route.params.rooms) {
+                //                    this.rooms = this.$route.params.rooms;
+                //                }
+
+                if (!this.roomsInitialized) {
+                    socket.emit("get-rooms", undefined, (result) => {
+                        this.roomsInitialized = true;
+
+                        if (result.code) {
+                            console.warn(result.msg)
+                        } else {
+
+                            this.rooms = result.data;
+
+                            if (this.rooms.length) {
+                                this.currentRoom = this.rooms[0];
+                            }
+                        }
+                    });
                 }
 
 
-                if (!this.rooms || this.rooms.length === 0) {
+
+                if (!this.roomsInitialized || this.rooms.length === 0) {
                     return;
                 }
 

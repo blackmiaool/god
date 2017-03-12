@@ -8,8 +8,11 @@
             </Message>
         </div>
     </main>
-    <header class="">
-        <span class="name">{{roomName}}</span>
+    <header>
+       <div class="deep-header">
+            <span class="name">{{roomName}}</span>   
+       </div>
+        
     </header>
     <footer>
         <img src="../assets/deep_ui/little_box1.png" class="bg-img left">

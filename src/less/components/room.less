@@ -3,17 +3,22 @@
 }
 
 >header {
-    .deep-header(80px);
+    >.deep-header {}
+    width: 300px;
+    margin: auto;
     margin-top: 24px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
     .avatar {
         position: absolute;
         left: 64px
     }
-    .name {}
+    .name {
+        position: absolute;
+        .crop(0);
+        top: -20%;
+        font-size: 22px;
+        height: 22px;
+        margin: auto;
+    }
 }
 
 >main {
