@@ -12,10 +12,10 @@
             </ul>
         </div>
         <Room :roomName="currentRoom.name" :messages="currentRoom.messages" :send="send" :openInputCode="openInputCode" :loadMessage="loadMessage"></Room>
-        <div class="right-info-wrap">
+        <div class="right-info-wrap" :admin="currentRoom.admin">
             <div class="bulletin">
-                <header>Bulletin</header>
-                <main>{{currentRoom.bulletin}}</main>
+                <header>Bulletin <i class="edit-icon fa fa-pencil-square-o clickable" v-if="$root.userName===currentRoom.admin" @click="editBulletin"></i></header>
+                <main @blur="finishEditingBulletin" :contenteditable="editingBulletin" ref="$bulletin">{{currentRoom.bulletin}}</main>
             </div>
             <div class="member-list-wrap">
                 <header>
@@ -176,6 +176,7 @@
                     const haveRoom = vm.rooms.some((room) => {
                         if (room.name === targetRoomName) {
                             vm.currentRoom = room;
+
                             return true;
                         } else {
                             return false;
@@ -191,8 +192,6 @@
                                 vm.rooms.push(result.data);
                                 vm.currentRoom = result.data;
                             }
-
-
                         });
                     }
                 } else {
@@ -217,6 +216,7 @@
             return {
                 currentRoom: {},
                 rooms: [],
+                editingBulletin: false,
                 roomsInitialized: false,
                 showEmotion: false,
                 showCode: false,
@@ -242,6 +242,37 @@
             }
         },
         methods: {
+            finishEditingBulletin() {
+                if (this.bulletinTimeout) {
+                    clearTimeout(this.bulletinTimeout);
+                    this.bulletinTimeout = 0;
+                }
+                this.bulletinTimeout = setTimeout(() => {
+                    this.bulletinTimeout = 0;
+                    this.editingBulletin = false;
+                    socket.emit("set-bulletin", {
+                        name: this.currentRoom.name,
+                        content: this.$refs.$bulletin.textContent
+                    }, (result) => {
+                        if (result.code) {
+                            console.warn(result.msg)
+                        } else {
+
+                        }
+                    });
+                }, 200);
+            },
+            editBulletin() {
+                if (!this.bulletinTimeout) {
+                    this.editingBulletin = !this.editingBulletin;
+                    if (this.editingBulletin) {
+                        setTimeout(() => {
+                            $(this.$refs.$bulletin).focus();
+                        });
+
+                    }
+                }
+            },
             openInputCode(code) {
                 this.showCode = true;
                 setTimeout(() => {

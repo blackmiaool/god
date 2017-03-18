@@ -379,6 +379,41 @@ async function saveMessage($name, $room, date, $type, $content) {
     });
     return result;
 }
+async function setRoomInfo($name, info) {
+    let params = {
+        Bulletin: '$bulletin',
+        Admin: '$admin',
+    };
+    for (const i in params) {
+        if (!info[i]) {
+            delete params[i];
+        }
+    }
+    let paramsStr = [];
+    for (const i in params) {
+        paramsStr.push([i, params[i]]);
+    }
+    paramsStr = paramsStr.map(function ([name, as]) {
+        return `${name} = ${as}`;
+    }).join(",");
+    const result = await new Promise(function (resolve, reject) {
+        db.serialize(function () {
+            db.run(`UPDATE room SET ${paramsStr} WHERE Name = $name;`, Object.assign({
+                $name,
+            }, {
+                $bulletin: info.Bulletin,
+                $admin: info.Admin
+            }), function (e) {
+                if (e) {
+                    resolve(e);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    });
+    return result;
+}
 export {
     register,
     getRoomsInfo,
@@ -386,5 +421,6 @@ export {
     createRoom,
     joinRoom,
     saveMessage,
-    getRoomsHistory
+    getRoomsHistory,
+    setRoomInfo
 }

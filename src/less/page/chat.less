@@ -117,13 +117,26 @@
     padding: @padding-left;
     padding-top: 28px;
     .bulletin {
+        &:hover {
+            .edit-icon {
+                display: inline-block;
+            }
+        }
+        .edit-icon {
+            display: none;
+        }
         header {
             font-size: 16px;
             margin-bottom: 20px;
         }
         main {
+            padding: 5px;
             font-size: 14px;
             margin-top: 5px;
+            &[contenteditable="true"] {
+                background-color: black;
+                color: white;
+            }
         }
         padding-bottom: 10px;
         border-bottom: @splitter 1px solid;

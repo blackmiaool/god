@@ -270,6 +270,39 @@ function init(io) {
 
         });
 
+        socket.on('set-bulletin', function ({
+            name: roomName,
+            content,
+        }, cb) {
+            if (!socket.context.name) {
+                cb(errorMap[13]);
+                return;
+            }
+            if (roomName.length > 10) {
+                cb(errorMap[3]);
+                return;
+            }
+            db.getRoomsInfo([roomName]).then(function (rooms) {
+                if (socket.context.name !== rooms[0].admin) {
+                    throw 17;
+                }
+
+            }).then(function () {
+                return db.setRoomInfo(roomName, {
+                    Bulletin: content,
+                });
+            }).then(function (result) {
+                if (!result) {
+                    cb(successData());
+                } else {
+                    cb(errorMap[1]);
+                }
+            }).catch(function (e) {
+                console.log("error", e);
+                cb(errorMap[e]);
+            });
+        });
+
         socket.on('get-room', function ({
             name: roomName,
         }, cb) {

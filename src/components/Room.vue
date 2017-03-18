@@ -201,7 +201,9 @@
         directives: {
             StickScroll
         },
-        props: ['messages', 'roomName', 'send', 'openInputCode', 'loadMessage']
+        props: ['messages', 'roomName', 'send', 'openInputCode', 'admin',
+            'loadMessage'
+        ]
     };
 
 </script>

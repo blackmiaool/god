@@ -48,6 +48,9 @@ const map = {
     "16": {
         msg: "Img src too long"
     },
+    "17": {
+        msg: "Priority needed"
+    },
 
 }
 for (const i in map) {
