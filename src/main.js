@@ -4,7 +4,8 @@ import Vue from 'vue'
 import Chat from './Chat'
 import Login from './Login'
 import Settings from './Settings'
-import socket from "./io";
+import socket from './io';
+
 import LeftTabs from './components/LeftTabs';
 import VueRouter from 'vue-router';
 

@@ -94,6 +94,7 @@
         mounted() {},
         props: ["name", "time", "content", "avatar", "type"],
         computed: {
+
             sections: function() {
                 return tokenMatch(this.content, [{
                     regexp: /#\(([\S]+?)\)\s?/g,

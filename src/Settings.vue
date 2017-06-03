@@ -2,7 +2,7 @@
     <div class="top-page-wrap settings-page">
         <div class="setting-tab-header-wrap">   
             <div v-for="(tab,$index) in tabs" v-on:click="selectTab($index)">
-              <SettingTabHeader  :tab="tab"  :active="currentTab===$index"/>
+                <SettingTabHeader  :tab="tab"  :active="currentTab===$index"/>
             </div>           
         </div>   
         <RoomPanel :class="{top:currentTab>0}"/>

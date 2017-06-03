@@ -1,5 +1,6 @@
 const config = require("../config.js");
-const socket = window.io(`:${config.serverPort}`);
+const io = require('./socketio.js')
+const socket = io(`:${config.serverPort}`);
 socket.context = {
     logged: false
 };

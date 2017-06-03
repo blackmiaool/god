@@ -145,6 +145,10 @@ class User {
     }
 }
 
+function doNothing() {
+
+}
+
 function init(io) {
     io.on('connection', function (socket) {
         socket.context = {};
@@ -152,7 +156,7 @@ function init(io) {
             room: roomName,
             type,
             content
-        }, cb) {
+        }, cb = doNothing) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
                 return;
@@ -171,13 +175,16 @@ function init(io) {
 
                 }
             }
+            if (type === "image" && content.length > 2e6 && content.length <= 300e6) {
+                type = "file";
+            }
             if (type === "file") {
                 if (content.length > 300e6) { //300M
                     cb(errorMap[15]);
                     return;
                 }
             } else {
-                if (content.length > 1e6) {
+                if (content.length > 2e6) {
                     cb(errorMap[15]);
                     return;
                 }
@@ -273,7 +280,7 @@ function init(io) {
         socket.on('set-bulletin', function ({
             name: roomName,
             content,
-        }, cb) {
+        }, cb = doNothing) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
                 return;
@@ -305,7 +312,7 @@ function init(io) {
 
         socket.on('get-room', function ({
             name: roomName,
-        }, cb) {
+        }, cb = doNothing) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
                 return;
@@ -327,7 +334,7 @@ function init(io) {
             name,
             id,
             cnt
-        }, cb) {
+        }, cb = doNothing) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
                 return;
@@ -343,7 +350,7 @@ function init(io) {
 
         socket.on('create-room', function ({
             name: roomName,
-        }, cb) {
+        }, cb = doNothing) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
                 return;
@@ -367,7 +374,7 @@ function init(io) {
         });
         socket.on('join-room', function ({
             name: roomName,
-        }, cb) {
+        }, cb = doNothing) {
             if (!socket.context.name) {
                 cb(errorMap[13]);
                 return;

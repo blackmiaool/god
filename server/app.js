@@ -111,7 +111,7 @@ router.post('/register', async(ctx, next) => {
 
         const result = await db.register(name, password, avatarSrc);
         if (!result) {
-            fs.writeFileSync(`public/avatar/${name}.png`, buf);
+            fs.writeFileSync(`./public/avatar/${name}.png`, buf);
             ctx.body = {
                 code: 0,
                 msg: "ok",

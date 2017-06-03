@@ -80,7 +80,21 @@
         $(".image-drop-zone").removeClass("dragging")
     });
 
+    function handleMessage(msg) {
+        if (msg.name === "robot10") {
+            let params;
+            try {
+                params = JSON.parse(msg.content);
+                msg.type = params.type;
+                msg.content = params.content;
+                msg.name = params.source + '-' + params.name;
+                msg.avatar = params.avatar;
+            } catch (e) {
+                //console.log(e, msg);
+            }
 
+        }
+    }
 
     export default {
         name: 'Chat',
@@ -104,14 +118,16 @@
                 console.log("code", code);
                 this.openInputCode(code);
             });
-            socket.on('message', ({
-                room: roomName,
-                type,
-                content,
-                name,
-                avatar,
-                time,
-            }) => {
+            socket.on('message', (msg) => {
+                handleMessage(msg)
+                const {
+                    room: roomName,
+                    type,
+                    content,
+                    name,
+                    avatar,
+                    time,
+                } = msg;
                 const targetRoom = this.rooms.filter(function(room) {
                     return room.name === roomName;
                 })[0];
@@ -120,12 +136,14 @@
                 }
                 if (settings.config.showNotification) {
                     if (name !== this.$root.userName) {
+                        let contentThis;
                         if (typeof content !== "string") {
-                            content = String(content);
+                            contentThis = String(content);
                         }
-                        new Notification(content);
+                        new Notification(contentThis);
                     }
                 }
+                console.log("content", content);
                 targetRoom.messages.push({
                     name,
                     time,
@@ -133,36 +151,6 @@
                     avatar: avatar,
                     type
                 });
-            });
-            socket.on('cr-message', (data) => {
-                console.log(this);
-                if (data.name === "robot10") {
-                    let fakeData;
-                    try {
-                        fakeData = JSON.parse(data.content);
-                    } catch (e) {
-
-                    }
-
-                    if (typeof fakeData === "object" && fakeData) {
-                        fakeData.room = data.room;
-                        fakeData.source = data.source;
-                        data = fakeData;
-                    }
-                }
-                console.log(data);
-                const targetRoom = this.rooms.filter(function(room) {
-                    return room.name === data.room;
-                })[0];
-                if (targetRoom) {
-                    targetRoom.messages.push({
-                        name: data.name,
-                        time: Date.now(),
-                        content: data.content,
-                        avatar: data.avatar,
-                        source: data.source,
-                    });
-                }
             });
         },
         beforeRouteEnter(to, from, next) {
@@ -195,6 +183,7 @@
                         });
                     }
                 } else {
+                    vm.roomsInitialized = false;
                     vm.setDefaultRoom();
                 }
             });
@@ -308,13 +297,16 @@
                 //                }
 
                 if (!this.roomsInitialized) {
-                    socket.emit("get-rooms", undefined, (result) => {
-                        this.roomsInitialized = true;
 
+                    socket.emit("get-rooms", undefined, (result) => {
+
+                        this.roomsInitialized = true;
                         if (result.code) {
                             console.warn(result.msg)
                         } else {
-
+                            result.data.forEach(({
+                                messages
+                            }) => messages.forEach(handleMessage));
                             this.rooms = result.data;
 
                             if (this.rooms.length) {
@@ -396,10 +388,10 @@
                     if (result.code) {
                         console.warn(result.msg)
                     } else {
-                        console.log(result);
                         const targetRoom = this.rooms.filter(function(room) {
                             return room.name === name;
                         })[0];
+                        result.data.forEach(handleMessage)
                         if (targetRoom) {
                             targetRoom.messages = result.data.concat(targetRoom.messages);
                         }

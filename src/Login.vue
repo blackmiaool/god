@@ -15,17 +15,16 @@
             </div>
             <div v-if="mode==='register'" @click="refreshAvatar()" class="avatar-preview" :style="{'background-image':'url('+avatar+')'}"></div>
             <label class="remember deep-select">
-                    <input v-model="remember" name="remember" type="checkbox">
-                    <span class="deep-checkbox"></span>
-                    <span>Remember me</span>
-                    </label>
+                <input v-model="remember" name="remember" type="checkbox">
+                <span class="deep-checkbox"></span>
+                <span>Remember me</span>
+            </label>
 
-            <header  > 
-              <div class="deep-header">
+            <header> 
+                <div class="deep-header">
                    <img v-if="mode==='login'" class="deep-text" src="./assets/header_text/login.png" alt="">
                    <img v-if="mode==='register'" class="deep-text" src="./assets/header_text/register.png" alt="">
-              </div>           
-              
+                </div>                         
             </header>
             <button @click="send" class="accept deep-icon" data-icon="accept"></button>
             <button v-if="mode==='login'" class="go-register clickable" @click="setMode('register')">or Register</button>

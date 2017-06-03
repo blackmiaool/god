@@ -45,6 +45,11 @@ db.serialize(function () {
     }, function (e) {
 
     });
+    //    db.run(`DELETE FROM user WHERE Name=$r;`, {
+    //        $r: 'robot10'
+    //    }, function (e) {
+    //        console.log(e);
+    //    });
 
 
     //    db.all(`SELECT * FROM message ORDER BY id DESC LIMIT 1;
@@ -146,7 +151,12 @@ async function getRoomsHistory($room, $id = Infinity, $num) {
             } else {
                 data.forEach(function (v, i, a) {
                     if (v.type === "image" || v.type === "code" || v.type === "file") {
-                        v.content = JSON.parse(v.content);
+                        try {
+                            v.content = JSON.parse(v.content);
+                        } catch (e) {
+                            v.content = {};
+                        }
+
                     }
                 });
                 resolve(data || []);
@@ -212,6 +222,7 @@ async function getRoomsInfo(rooms) {
     return rooms;
 }
 async function joinRoom($name, $roomName) {
+    console.log('$roomName', $roomName)
     let result = await new Promise(function (resolve, reject) {
         const p1 = new Promise(function (resolve, reject) {
             db.get(`SELECT Admin as admin FROM room WHERE Name=$roomName;`, {
@@ -221,7 +232,7 @@ async function joinRoom($name, $roomName) {
                     console.log(e);
                     reject(e);
                 } else {
-                    if (result && result.admin) {
+                    if (result) {
                         resolve();
                     } else {
                         reject(errorMap[2]);
