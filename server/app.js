@@ -58,7 +58,15 @@ router.get('/getFile', async(ctx, next) => {
     const shortName = ctx.request.query.name.replace(/^\d+-/, "");
     ctx.body = fs.createReadStream(__dirname + '/public/files/' + ctx.request.query.name);
     ctx.attachment(shortName);
-    //    console.log(1, this);
+});
+router.get('/getCode', async(ctx, next) => {
+    console.log();
+    const name = ctx.request.query.name;
+    if (!name.match(/^[\w\.]+$/)) {
+        ctx.status = 400;
+        return;
+    }
+    ctx.body = fs.createReadStream(__dirname + '/public/code/' + name);
 });
 router.post('/login', async(ctx, next) => {
     const name = ctx.request.body.name;

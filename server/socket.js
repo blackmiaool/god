@@ -163,18 +163,10 @@ function init(io) {
             }
             let originalName;
             if (typeof content === "object" && (type === "image" || type === "file")) {
-                console.log("aa")
                 originalName = content.name || '';
                 content = content.data;
             }
 
-            if (type === "image") {
-                if (content.match(/^data:/)) {
-
-                } else {
-
-                }
-            }
             if (type === "image" && content.length > 2e6 && content.length <= 300e6) {
                 type = "file";
             }
@@ -198,10 +190,29 @@ function init(io) {
                 cb(errorMap[7]);
                 return;
             }
-            if (type === "image" || type === "file") {
+            if (type === 'code') {
+                console.log('code content', content)
+                const suffix = content.lang;
+                let fingerprint;
+                if (content.data.length < 5e6) {
+                    fingerprint = md5(content.data);
+                } else {
+                    fingerprint = parseInt(Date.now());
+                }
+                const fileFullName = `${fingerprint}`;
+                const buff = Buffer.from(content.data);
+                const localPath = 'code/' + fileFullName;
+                fs.writeFile('public/' + localPath, buff, function () {
+                    send({
+                        content: {
+                            lang: content.lang,
+                            src: `//${config.domain}:${config.serverPort}/getCode?name=${fileFullName}`
+                        }
+                    });
+                });
+            } else if (type === "image" || type === "file") {
                 if (content.match(/^data:/)) {
                     let suffix = (originalName.match(/(\w+)$/) || content.match(/^data:image\/(\w+)/) || [])[1];
-                    console.log(suffix, "suffix");
                     if (!suffix) {
                         suffix = "";
                     }
@@ -244,13 +255,12 @@ function init(io) {
                         }
 
                     });
-                    return;
                 } else if (content.length > 1e3) {
                     cb(errorMap[16]);
-                    return;
                 }
+            } else {
+                send();
             }
-            send();
 
             function send(extra) {
                 const message = {

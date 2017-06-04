@@ -44,7 +44,7 @@
             <textarea ref="code-area"></textarea>
             <div class="tool-bar">
                 <select v-model="codeLang">
-                    <option>javascript</option>
+                    <option>js</option>
                     <option>go</option>
                     <option>css</option>
                     <option>html</option>
@@ -209,7 +209,7 @@
                 roomsInitialized: false,
                 showEmotion: false,
                 showCode: false,
-                codeLang: "javascript",
+                codeLang: "js",
                 editor: false,
                 editorConfig: {
                     lineNumbers: true,
@@ -227,7 +227,12 @@
         },
         watch: {
             codeLang: function(v) {
-                this.editor.setOption("mode", v);
+                if (v === 'js') {
+                    this.editor.setOption("mode", 'javascript');
+                } else {
+                    this.editor.setOption("mode", v);
+                }
+
             }
         },
         methods: {
