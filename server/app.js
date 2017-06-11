@@ -53,15 +53,18 @@ router.post('/avatar', async(ctx, next) => {
     });
 
 });
+
+function getFileName(name) {
+    return name.replace(/^[\.\/]+/, "").replace(/^[\.]+/, "");
+}
 router.get('/getFile', async(ctx, next) => {
-    console.log();
-    const shortName = ctx.request.query.name.replace(/^\d+-/, "");
-    ctx.body = fs.createReadStream(__dirname + '/public/files/' + ctx.request.query.name);
+    const queryName = getFileName(ctx.request.query.name);
+    const shortName = queryName.replace(/^\d+-/, "");
+    ctx.body = fs.createReadStream(__dirname + '/public/files/' + queryName);
     ctx.attachment(shortName);
 });
 router.get('/getCode', async(ctx, next) => {
-    console.log();
-    const name = ctx.request.query.name;
+    const name = getFileName(ctx.request.query.name);
     if (!name.match(/^[\w\.]+$/)) {
         ctx.status = 400;
         return;
