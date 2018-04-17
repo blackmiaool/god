@@ -223,7 +223,7 @@ function init(io) {
                         fingerprint = parseInt(Date.now());
                     }
 
-                    content = content.replace(/^data:\w*\/?[\w\-+]*;base64,/, "");
+                    content = content.replace(/^data:.+?\/(.+);base64,/, "");
                     const buff = Buffer.from(content, 'base64');
 
                     let dir;
