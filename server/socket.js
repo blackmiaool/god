@@ -13,23 +13,11 @@ const fs = require('fs');
 const config = require("../config.js");
 const uaParser = require('ua-parser-js');
 
-function getSyncData(socket) {
-    return {
-        avatar: socket.context.avatar,
-        rooms: socket.context.rooms,
-        name: socket.context.name + ""
-    }
-}
-
 function isEmptyObject(a) {
     for (var i in a) {
         return false;
     }
     return true;
-}
-
-function syncRoom(socket, roomName) {
-
 }
 
 function getMembers(roomName) {
@@ -47,7 +35,6 @@ function getMembers(roomName) {
                 };
             })
         };
-
     }
     return ret;
 }
@@ -62,8 +49,6 @@ function syncMembers(roomName, exception) {
                 members: getMembers(roomName)
             });
         });
-
-
     }
 }
 
@@ -88,9 +73,9 @@ class User {
         const item = {
             socket
         };
-        for (const i in info) {
-            Object.assign(item, info);
-        }
+
+        Object.assign(item, info);
+
         this.clients.push(item);
     }
     disconnectClient(socket) {
@@ -118,9 +103,7 @@ class User {
             delete userMap[this.name];
         } else {
             this.rooms.forEach((room) => {
-
                 syncMembers(room.name);
-
             });
         }
     }
@@ -192,7 +175,6 @@ function init(io) {
             }
             if (type === 'code') {
                 console.log('code content', content)
-                const suffix = content.lang;
                 let fingerprint;
                 if (content.data.length < 5e6) {
                     fingerprint = md5(content.data);
@@ -213,6 +195,7 @@ function init(io) {
             } else if (type === "image" || type === "file") {
                 if (content.match(/^data:/)) {
                     let suffix = (originalName.match(/(\w+)$/) || content.match(/^data:image\/(\w+)/) || [])[1];
+
                     if (!suffix) {
                         suffix = "";
                     }
@@ -222,8 +205,7 @@ function init(io) {
                     } else {
                         fingerprint = parseInt(Date.now());
                     }
-
-                    content = content.replace(/^data:.+?\/(.+);base64,/, "");
+                    content = content.replace(/^data:.*?;base64,/, "");
                     const buff = Buffer.from(content, 'base64');
 
                     let dir;
@@ -232,10 +214,9 @@ function init(io) {
                     if (type === 'image') {
                         dir = "images/";
                         fileFullName = `${fingerprint}.${suffix}`;
-
                     } else {
                         dir = "files/";
-                        fileFullName = `${Date.now()+'-'+originalName}`;
+                        fileFullName = `${Date.now() + '-' + originalName}`;
                     }
                     localPath = dir + fileFullName;
                     fs.writeFile('public/' + localPath, buff, function () {
@@ -253,7 +234,6 @@ function init(io) {
                                 }
                             });
                         }
-
                     });
                 } else if (content.length > 1e3) {
                     cb(errorMap[16]);
@@ -272,7 +252,6 @@ function init(io) {
                     time: Date.now()
                 };
 
-
                 for (const i in extra) {
                     message[i] = extra[i];
                 }
@@ -282,9 +261,7 @@ function init(io) {
                 }
 
                 db.saveMessage(message.name, roomName, new Date(), message.type, message.content);
-
             }
-
         });
 
         socket.on('set-bulletin', function ({
@@ -301,9 +278,8 @@ function init(io) {
             }
             db.getRoomsInfo([roomName]).then(function (rooms) {
                 if (socket.context.name !== rooms[0].admin) {
-                    throw 17;
+                    throw new Error(17);
                 }
-
             }).then(function () {
                 return db.setRoomInfo(roomName, {
                     Bulletin: content,
@@ -377,7 +353,6 @@ function init(io) {
                 if (result.code === 'SQLITE_CONSTRAINT') {
                     cb(errorMap[7]);
                 } else {
-
                     cb(errorMap[1]);
                 }
             });
@@ -400,7 +375,6 @@ function init(io) {
                 if (typeof result.code === "number") {
                     cb(result);
                 } else {
-
                     cb(errorMap[1]);
                 }
             });
@@ -424,12 +398,10 @@ function init(io) {
                 });
                 cb(successData(rooms));
             });
-
         });
         socket.on('login', (data, cb) => {
             const checkResult = registerCheck("server", data.name, data.password);
             //            console.log(data.name, socket.handshake.headers['user-agent'])
-
 
             if (checkResult) {
                 checkResult.code = 1;
@@ -437,8 +409,7 @@ function init(io) {
                 return;
             }
             db.login(data.name, data.password).then(function (result) {
-
-                if (socket.context.name) { //already logged in 
+                if (socket.context.name) { //already logged in
                     const user = User.getUser(socket.context.name);
                     user.disconnectClient(socket);
                 }
@@ -463,9 +434,7 @@ function init(io) {
                         avatar: user.avatar,
                     }));
                 });
-
             }).catch(function (result) {
-
                 let ret;
                 console.log(result);
                 if (result === true) {
@@ -477,7 +446,6 @@ function init(io) {
                 cb(ret);
             });
         })
-
     });
 
     io.on('join', (ctx, data) => {
@@ -489,10 +457,11 @@ function init(io) {
 
     io.on('god-message', function (ctx, data) {
         console.log("god-message", ctx, data);
-        if (crSocket)
+        if (crSocket) {
             crSocket.emit("message", {
                 data
             });
+        }
     });
     let crSocket;
     io.on('cr-register', function (ctx, data) {
