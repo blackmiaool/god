@@ -9,7 +9,7 @@
         "build": "node build/build.js",
         "lint": "eslint --ext .js,.vue src",
         "first": "cp config-default.js config.js && mkdir server/public/avatar && mkdir server/public/images && mkdir server/public/files && mkdir server/public/code && sudo apt-get install -y imagemagick && cd server/avatar-generator && npm i && cd ../..",
-        "deploy": "git pull && node build/build.js && cp -r ./dist /var/www/html"
+        "deploy": "git pull && npm run build && cp -r ./dist /var/www/html"
     },
     "dependencies": {
         "babel": "^6.23.0",
